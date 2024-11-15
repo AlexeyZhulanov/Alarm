@@ -3,20 +3,15 @@ package com.example.alarm.model
 import android.content.Context
 import android.database.sqlite.SQLiteConstraintException
 import android.util.Log
-import android.widget.Toast
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.example.alarm.room.AlarmDao
 import com.example.alarm.room.AlarmDbEntity
-import com.example.alarm.room.AlarmUpdateEnabledTuple
 import com.example.alarm.room.SettingsDao
 import com.example.alarm.room.SettingsDbEntity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -44,19 +39,9 @@ class AlarmService(
 
     override suspend fun getAlarms(): MutableList<Alarm> = withContext(Dispatchers.IO) {
         alarms.clear()
-        val tuple = alarmDao.selectAlarms()
-        if (tuple.isNotEmpty()) {
-            for (t in tuple) {
-                alarms.add(
-                    Alarm(
-                        id = t?.id ?: throw Exception(),
-                        timeHours = t.timeHours,
-                        timeMinutes = t.timeMinutes,
-                        name = t.name,
-                        enabled = t.enabled
-                    )
-                )
-            }
+        val dbAlarms = alarmDao.getAlarms()
+        dbAlarms?.forEach {
+            alarms.add(it.toAlarm())
         }
         return@withContext alarms
     }
@@ -95,18 +80,14 @@ class AlarmService(
         }
     }
 
-    override suspend fun updateEnabled(id: Long, enabled: Int) = withContext(Dispatchers.IO) {
-        alarmDao.updateEnabled(AlarmUpdateEnabledTuple(id, enabled))
+    override suspend fun updateEnabled(id: Long, enabled: Boolean) = withContext(Dispatchers.IO) {
+        alarmDao.updateEnabled(id, enabled)
         alarms = getAlarms()
-    }
-
-    override fun getAlarmById(id: Long): Flow<Alarm?> {
-        return alarmDao.getById(id).map { it?.toAlarm() }
     }
 
     override suspend fun deleteAlarms(list: List<Alarm>, context: Context?) = withContext(Dispatchers.IO) {
         for(l in list) {
-            if(l.enabled == 1) MyAlarmManager(context, l, Settings(0)).endProcess()
+            if(l.enabled) MyAlarmManager(context, l, Settings(0)).endProcess()
             alarmDao.deleteAlarm(AlarmDbEntity.fromUserInput(l))
         }
         alarms = getAlarms()
@@ -115,8 +96,8 @@ class AlarmService(
 
     suspend fun offAlarms(context: Context) = withContext(Dispatchers.IO) {
         for(alarm in alarms) {
-            if (alarm.enabled == 1) {
-                alarmDao.updateEnabled(AlarmUpdateEnabledTuple(alarm.id, 0))
+            if (alarm.enabled) {
+                alarmDao.updateEnabled(alarm.id, false)
                 MyAlarmManager(context, alarm, Settings(0)).endProcess()
             }
         }

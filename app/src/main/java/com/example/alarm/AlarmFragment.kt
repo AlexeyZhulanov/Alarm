@@ -48,9 +48,9 @@ class AlarmFragment : Fragment() {
                 adapter = AlarmsAdapter(interval, object : AlarmActionListener {
                     override fun onAlarmEnabled(alarm: Alarm, index: Int) {
                         lifecycleScope.launch {
-                            var bool = 0
-                            if (alarm.enabled == 0) {
-                                bool = 1
+                            var bool = false
+                            if (!alarm.enabled) {
+                                bool = true
                                 changeAlarmTime(alarm, false)
                                 binding.barTextView.text = updateBar()
                             } else {
@@ -70,7 +70,7 @@ class AlarmFragment : Fragment() {
                             }
 
                             override fun onChangeAlarm(alarmOld: Alarm, alarmNew: Alarm) {
-                                if (alarmNew.enabled == 1) {
+                                if (alarmNew.enabled) {
                                     changeAlarmTime(alarmOld, true)
                                     changeAlarmTime(alarmNew, false)
                                     binding.barTextView.text = updateBar()
@@ -105,7 +105,7 @@ class AlarmFragment : Fragment() {
                             if (alarmsToDelete.isNotEmpty()) {
                                     alarmViewModel.deleteAlarms(alarmsToDelete, context)
                                     for (a in alarmsToDelete) {
-                                        if (a.enabled == 1) changeAlarmTime(a, true)
+                                        if (a.enabled) changeAlarmTime(a, true)
                                     }
                                     binding.barTextView.text = updateBar()
                                 binding.floatingActionButtonDelete.visibility = View.GONE
@@ -174,7 +174,7 @@ class AlarmFragment : Fragment() {
         val calendar = Calendar.getInstance()
         val calendar2 = Calendar.getInstance(ULocale.ROOT)
         for(alr in adapter.alarms) {
-            if(alr.enabled == 1) {
+            if(alr.enabled) {
                 calendar.set(Calendar.HOUR_OF_DAY, alr.timeHours)
                 calendar.set(Calendar.MINUTE, alr.timeMinutes)
                 calendar.set(Calendar.SECOND, 0)

@@ -11,7 +11,7 @@ class AlarmWorker(appContext: Context, workerParams: WorkerParameters) :
     CoroutineWorker(appContext, workerParams) {
     override suspend fun doWork(): Result {
         val alarmId = inputData.getLong("alarmId", 0L)
-        val enabled = inputData.getInt("enabled", 0)
+        val enabled = inputData.getBoolean("enabled", false)
 
         val database = Room.databaseBuilder(applicationContext, AppDatabase::class.java, "database.db")
             .build()

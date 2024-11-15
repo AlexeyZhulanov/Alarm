@@ -1,6 +1,5 @@
 package com.example.alarm
 
-import VolumeAdjusterWorker
 import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -13,9 +12,7 @@ import android.media.AudioAttributes
 import android.media.AudioFocusRequest
 import android.media.AudioManager
 import android.media.MediaPlayer
-import android.net.Uri
 import android.os.Build
-import android.os.Handler
 import android.os.PowerManager
 import android.util.Log
 import androidx.core.app.NotificationCompat

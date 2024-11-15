@@ -55,7 +55,7 @@ class SettingsFragment : Fragment() {
             val settings = alarmViewModel.getSettings()
             binding.melodyName.text = settings.melody
             binding.repeatRadioGroup.isEnabled = settings.repetitions == 1
-            binding.switchVibration.isChecked = settings.vibration == 1
+            binding.switchVibration.isChecked = settings.vibration
             when(settings.repetitions) {
                 3 -> binding.repeats3.isChecked = true
                 5 -> binding.repeats5.isChecked = true
@@ -137,14 +137,13 @@ class SettingsFragment : Fragment() {
         val settings = Settings(
             id = id,
             melody = binding.melodyName.text.toString(),
-            vibration = if(binding.switchVibration.isChecked) 1 else 0,
+            vibration = binding.switchVibration.isChecked,
             interval = if(binding.interval3.isChecked) 3
             else if(binding.interval5.isChecked) 5
             else 10,
             repetitions = if(binding.repeats3.isChecked) 3
             else if(binding.repeats5.isChecked) 5
-            else 100,
-            disableType = 0 //todo
+            else 100
         )
         return settings
     }

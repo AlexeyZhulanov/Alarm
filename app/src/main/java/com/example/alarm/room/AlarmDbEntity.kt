@@ -14,10 +14,10 @@ import com.example.alarm.model.Alarm
 )
 data class AlarmDbEntity(
     @PrimaryKey(autoGenerate = true) val id: Long,
-    @ColumnInfo(name = "time_hours", collate = ColumnInfo.NOCASE) var timeHours: Int,
-    @ColumnInfo(name = "time_minutes", collate = ColumnInfo.NOCASE) var timeMinutes: Int,
+    @ColumnInfo(name = "time_hours") var timeHours: Int,
+    @ColumnInfo(name = "time_minutes") var timeMinutes: Int,
     var name: String,
-    var enabled: Int
+    var enabled: Boolean
     ) {
 
     fun toAlarm(): Alarm = Alarm(

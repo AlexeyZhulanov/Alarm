@@ -3,13 +3,7 @@ package com.example.alarm.di
 import android.app.AlarmManager
 import android.content.Context
 import androidx.room.Room
-import com.example.alarm.AlarmActionListener
-import com.example.alarm.AlarmFragment
-import com.example.alarm.AlarmsAdapter
-import com.example.alarm.model.Alarm
 import com.example.alarm.model.AlarmService
-import com.example.alarm.model.MyAlarmManager
-import com.example.alarm.model.Settings
 import com.example.alarm.room.AlarmDao
 import com.example.alarm.room.AppDatabase
 import com.example.alarm.room.SettingsDao
@@ -32,6 +26,7 @@ object AlarmModule {
             "database.db"
         ).createFromAsset("init_db.db").build()
     }
+
     @Provides
     @Singleton
     fun provideAlarmDao(appDatabase: AppDatabase): AlarmDao {
@@ -53,5 +48,4 @@ object AlarmModule {
     fun provideAlarmManager(@ApplicationContext context: Context): AlarmManager {
         return context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
     }
-
 }

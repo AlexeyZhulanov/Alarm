@@ -63,7 +63,7 @@ class SignalFragment(
 
         WorkManager.getInstance(requireContext()).enqueue(updateWorkRequest)
         selectMelody(settings!!)
-        if(settings.vibration == 1) startVibrator()
+        if(settings.vibration) startVibrator()
         val tmp = Calendar.getInstance().time.toString()
         val str = tmp.split(" ")
         val date = "${str[0]} ${str[1]} ${str[2]}"
@@ -255,7 +255,7 @@ class SignalFragment(
         mediaPlayer.release()
         audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, originalMusicVolume, 0) // Restore original music volume
         audioManager.abandonAudioFocusRequest(focusRequest) // Abandon audio focus request
-        if(settings!!.vibration == 1) vibrator.cancel()
+        if(settings!!.vibration) vibrator.cancel()
     }
 }
 const val LOCAL_BROADCAST_KEY3 = "alarm_turnoff"

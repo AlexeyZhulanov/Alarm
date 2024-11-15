@@ -54,8 +54,8 @@ class AlarmViewModel @Inject constructor(
         alarmsService.removeListener(alarmsListener)
     }
 
-    suspend fun updateEnabledAlarm(alarm: Alarm, enabled: Int, context: Context, idx: Int) = withContext(Dispatchers.Main) {
-            if (alarm.enabled == 0) { //turn on
+    suspend fun updateEnabledAlarm(alarm: Alarm, enabled: Boolean, context: Context, idx: Int) = withContext(Dispatchers.Main) {
+            if (!alarm.enabled) { //turn on
                 val s = async(Dispatchers.IO) { alarmsService.getSettings() }
                 MyAlarmManager(context, alarm, s.await()).startProcess()
             }
@@ -81,7 +81,7 @@ class AlarmViewModel @Inject constructor(
 
     suspend fun updateAlarm(alarmNew: Alarm, context: Context): Boolean = withContext(Dispatchers.Main) {
         if(withContext(Dispatchers.IO) { alarmsService.updateAlarm(alarmNew)}) {
-            if (alarmNew.enabled == 1) {
+            if (alarmNew.enabled) {
                 val settings = async(Dispatchers.IO) { alarmsService.getSettings() }
                 MyAlarmManager(context, alarmNew, settings.await()).restartProcess()
             }

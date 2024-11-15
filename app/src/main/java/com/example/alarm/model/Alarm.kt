@@ -1,13 +1,11 @@
 package com.example.alarm.model
 
-import javax.inject.Inject
-
-data class Alarm @Inject constructor(
+data class Alarm(
     val id: Long,
     var timeHours: Int = 7,
     var timeMinutes: Int = 0,
     var name: String = "default",
-    var enabled: Int = 0
+    var enabled: Boolean = false
 ) {
     override fun toString(): String {
         return "id: $id, hours:$timeHours, minutes:$timeMinutes, " +

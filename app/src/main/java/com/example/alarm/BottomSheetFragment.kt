@@ -61,7 +61,7 @@ class BottomSheetFragment(
             timeHours = binding.timePicker.hour,
             timeMinutes = binding.timePicker.minute,
             name = if(binding.signalName.text.toString() == "") "default" else binding.signalName.text.toString() ,
-            enabled = 1
+            enabled = true
         )
         lifecycleScope.launch {
             if(alarmViewModel.addAlarm(alarm, requireContext())) {

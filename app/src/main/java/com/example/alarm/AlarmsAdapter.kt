@@ -124,7 +124,7 @@ class AlarmsAdapter(
                 else "раз в $interval минут"
                 if (interval == 3 && alarm.name == "default") txt2 += "ы"
                 intervalTextView.text = Html.fromHtml(txt2, 0)
-                switch1.isChecked = alarm.enabled == 1
+                switch1.isChecked = alarm.enabled
                 if (!canLongClick) {
                     checkBox.tag = alarm
                     switch1.visibility = View.INVISIBLE
