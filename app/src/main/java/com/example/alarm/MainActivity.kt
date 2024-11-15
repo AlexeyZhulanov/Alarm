@@ -76,7 +76,7 @@ class MainActivity : AppCompatActivity() {
         if (savedInstanceState == null) {
             supportFragmentManager
                 .beginTransaction()
-                .add(R.id.fragmentContainer, AlarmFragment(), "ALARM_FRAGMENT_TAG")
+                .add(R.id.fragmentContainer, AlarmFragment(), getString(R.string.alarm_fragment_tag))
                 .commit()
         }
         supportFragmentManager.registerFragmentLifecycleCallbacks(fragmentListener, false)
@@ -118,7 +118,7 @@ class MainActivity : AppCompatActivity() {
             R.id.off_alarms -> {
                 uiScope.launch {
                     alarmsService.offAlarms(applicationContext)
-                    (supportFragmentManager.findFragmentByTag("ALARM_FRAGMENT_TAG") as? AlarmFragment)?.fillAndUpdateBar()
+                    (supportFragmentManager.findFragmentByTag(getString(R.string.alarm_fragment_tag)) as? AlarmFragment)?.fillAndUpdateBar()
                 }
                 true
             }
@@ -129,16 +129,16 @@ class MainActivity : AppCompatActivity() {
     private fun checkOverlayPermission(context: Context) {
         if (!Settings.canDrawOverlays(context)) {
             val builder = AlertDialog.Builder(context)
-            builder.setTitle("Необходимы разрешения")
-            builder.setMessage("Пожалуйста, предоставьте разрешение на наложение поверх других приложений для правильной работы будильника.")
-            builder.setPositiveButton("Настройки") { _, _ ->
+            builder.setTitle(getString(R.string.need_permissions))
+            builder.setMessage(getString(R.string.please_gain_permissions))
+            builder.setPositiveButton(getString(R.string.settings_txt)) { _, _ ->
                 val intent = Intent(
                     Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
                     Uri.parse("package:${context.packageName}")
                 )
                 context.startActivity(intent)
             }
-            builder.setNegativeButton("Отмена") { dialog, _ ->
+            builder.setNegativeButton(getString(R.string.cancel_txt)) { dialog, _ ->
                 dialog.dismiss()
             }
             builder.show()

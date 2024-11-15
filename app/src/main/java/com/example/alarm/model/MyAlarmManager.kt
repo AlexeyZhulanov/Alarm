@@ -9,6 +9,7 @@ import android.icu.util.ULocale
 import android.util.Log
 import android.widget.Toast
 import com.example.alarm.AlarmReceiver
+import com.example.alarm.R
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -65,11 +66,14 @@ class MyAlarmManager(
             } else ((calendar.timeInMillis - calendar2.timeInMillis) / 60000).toInt()
             var str = ""
             when (minutes) {
-                0 -> str += "Звонок менее чем через 1 мин."
-                in 1..59 -> str += "Звонок через $minutes мин."
+                0 -> str += context?.getString(R.string.alarm_less_min)
+                in 1..59 -> str += context?.getString(R.string.alarm_without_n) +  " $minutes " +
+                        context?.getString(R.string.min_point)
                 else -> {
                     val hours = minutes / 60
-                    str += "Звонок через $hours ч. ${minutes % 60} мин."
+                    str += context?.getString(R.string.alarm_without_n) + " $hours " +
+                            context?.getString(R.string.ch) + " ${minutes % 60} " +
+                            context?.getString(R.string.min_point)
                 }
             }
             return@async str

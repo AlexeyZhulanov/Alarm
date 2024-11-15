@@ -47,10 +47,11 @@ class SettingsFragment : Fragment() {
             if(resId != 0) binding.settingsLayout.background = ContextCompat.getDrawable(requireContext(), resId)
         }
         else {
-            binding.wallpaperName.text = "Classic"
+            binding.wallpaperName.text = getString(R.string.classic)
         }
         val themeNumber = settingsViewModel.getPreferencesTheme()
-        if(themeNumber != 0) binding.colorThemeName.text = "Theme ${themeNumber+1}" else binding.colorThemeName.text = "Classic"
+        val themeText = getString(R.string.theme) + "${themeNumber+1}"
+        if(themeNumber != 0) binding.colorThemeName.text = themeText else binding.colorThemeName.text = getString(R.string.classic)
         lifecycleScope.launch {
             val settings = settingsViewModel.getSettings()
             binding.melodyName.text = settings.melody
@@ -88,7 +89,8 @@ class SettingsFragment : Fragment() {
                     getString(R.string.melody11) -> playMelody(R.raw.medieval_signal)
                     getString(R.string.melody12) -> playMelody(R.raw.introduction_signal)
                     else -> {
-                        Toast.makeText(requireContext(), "Melody not selected", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(requireContext(),
+                            getString(R.string.melody_not_selected), Toast.LENGTH_SHORT).show()
                     }
                 }
             }
@@ -196,7 +198,7 @@ class SettingsFragment : Fragment() {
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
 
         val menuItems = listOf(
-            MenuItemData("Classic", R.drawable.whitequad),
+            MenuItemData(getString(R.string.classic), R.drawable.whitequad),
             MenuItemData("1.", R.drawable.wallpaper1),
             MenuItemData("2.", R.drawable.wallpaper2),
             MenuItemData("3.", R.drawable.wallpaper3),
@@ -211,17 +213,17 @@ class SettingsFragment : Fragment() {
         var temp = ""
         val adapter = PopupMenuWallpaperAdapter(menuItems) { menuItem ->
             temp = when(menuItem.title) {
-                "Classic" -> ""
-                "1." -> "wallpaper1"
-                "2." -> "wallpaper2"
-                "3." -> "wallpaper3"
-                "4." -> "wallpaper4"
-                "5." -> "wallpaper5"
-                "6." -> "wallpaper6"
-                "7." -> "wallpaper7"
-                "8." -> "wallpaper8"
-                "9." -> "wallpaper9"
-                "10." -> "wallpaper10"
+                getString(R.string.classic) -> ""
+                "1." -> getString(R.string.wallpaper1)
+                "2." -> getString(R.string.wallpaper2)
+                "3." -> getString(R.string.wallpaper3)
+                "4." -> getString(R.string.wallpaper4)
+                "5." -> getString(R.string.wallpaper5)
+                "6." -> getString(R.string.wallpaper6)
+                "7." -> getString(R.string.wallpaper7)
+                "8." -> getString(R.string.wallpaper8)
+                "9." -> getString(R.string.wallpaper9)
+                "10." -> getString(R.string.wallpaper10)
                 else -> ""
             }
             settingsViewModel.editPreferencesWallpaper(temp)
@@ -279,7 +281,7 @@ class SettingsFragment : Fragment() {
         }
         else {
             binding.settingsLayout.background = null
-            binding.wallpaperName.text = "Classic"
+            binding.wallpaperName.text = getString(R.string.classic)
         }
     }
 

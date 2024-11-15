@@ -119,7 +119,7 @@ class AlarmService(
         listener.invoke(alarms)
     }
     fun removeListener(listener: AlarmsListener) = listeners.remove(listener)
-    suspend fun notifyChanges() = withContext(Dispatchers.Main + job) {
+    suspend fun notifyChanges() = withContext(Dispatchers.Main) {
         listeners.forEach {
             it.invoke(alarms)
         }

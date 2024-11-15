@@ -73,14 +73,14 @@ class AlarmReceiver : BroadcastReceiver() {
     @SuppressLint("LaunchActivityFromNotification")
     private fun showBasicTurnOffNotification(context: Context, id: Long, settings: Settings?) {
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        val channelId = "basic_channel_id"
-        val channelName = "Basic Notifications"
+        val channelId = context.getString(R.string.basic_channel_id)
+        val channelName = context.getString(R.string.basic_notifications)
 
         val channel = NotificationChannel(channelId, channelName, NotificationManager.IMPORTANCE_HIGH).apply {
             enableLights(true)
             lightColor = android.graphics.Color.RED
             enableVibration(true)
-            description = "Alarm notification"
+            description = context.getString(R.string.alarm_notification)
         }
         notificationManager.createNotificationChannel(channel)
 
@@ -139,9 +139,9 @@ class AlarmReceiver : BroadcastReceiver() {
         )
         val notificationBuilder = NotificationCompat.Builder(context, channelId)
             .setSmallIcon(R.mipmap.ic_alarm_adaptive_fore)
-            .setContentTitle("Будильник")
-            .setContentText("Нажмите, чтобы отключить будильник")
-            .addAction(R.drawable.ic_clear, "Turn Off", turnOffPendingIntent)
+            .setContentTitle(context.getString(R.string.alarm))
+            .setContentText(context.getString(R.string.press_to_off))
+            .addAction(R.drawable.ic_clear, context.getString(R.string.turn_off), turnOffPendingIntent)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setCategory(NotificationCompat.CATEGORY_ALARM)
             .setDefaults(NotificationCompat.DEFAULT_ALL)

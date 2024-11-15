@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -37,11 +38,7 @@ class AlarmFragment : Fragment() {
     private val alarmViewModel: AlarmViewModel by viewModels()
 
     @SuppressLint("DiscouragedApi")
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         binding = FragmentAlarmBinding.inflate(inflater, container, false)
         val (wallpaper, interval) = alarmViewModel.getPreferencesWallpaperAndInterval()
         if (wallpaper != "") {
@@ -80,7 +77,7 @@ class AlarmFragment : Fragment() {
                             binding.barTextView.text = updateBar()
                         }
                     }
-                }).show(childFragmentManager, "ChangeTag")
+                }).show(childFragmentManager, getString(R.string.changetag))
             }
 
             override fun onAlarmLongClicked() {
@@ -152,7 +149,7 @@ class AlarmFragment : Fragment() {
                 override fun onChangeAlarm(alarmOld: Alarm, alarmNew: Alarm) {
                     return
                 }
-            }).show(childFragmentManager, "AddTag")
+            }).show(childFragmentManager, getString(R.string.addtag))
         }
         alarmViewModel.initCompleted.observe(viewLifecycleOwner) {
             if (it) {
@@ -165,6 +162,12 @@ class AlarmFragment : Fragment() {
                 }
             }
         }
+        binding.button3.setOnClickListener {
+            Toast.makeText(requireContext(), getString(R.string.not_implemented), Toast.LENGTH_SHORT).show()
+        }
+        binding.button4.setOnClickListener {
+            Toast.makeText(requireContext(), getString(R.string.not_implemented), Toast.LENGTH_SHORT).show()
+        }
         return binding.root
     }
 
@@ -173,8 +176,7 @@ class AlarmFragment : Fragment() {
         updateJob?.cancel()
     }
 
-    private suspend fun fillAlarmsTime(): MutableMap<Long, Long> =
-        withContext(Dispatchers.Default) {
+    private suspend fun fillAlarmsTime(): MutableMap<Long, Long> = withContext(Dispatchers.Default) {
             val map = mutableMapOf<Long, Long>()
             val calendar = Calendar.getInstance()
             val calendar2 = Calendar.getInstance(ULocale.ROOT)
@@ -212,7 +214,7 @@ class AlarmFragment : Fragment() {
 
     private fun updateBar(): String {
         var txt: String = ""
-        if (millisToAlarm.isEmpty()) txt += "Все сигналы\nвыключены"
+        if (millisToAlarm.isEmpty()) txt += getString(R.string.all_signals_off)
         else {
             val calendar = Calendar.getInstance(ULocale.ROOT)
             val longTime: Long = millisToAlarm.entries.first().value
@@ -220,11 +222,13 @@ class AlarmFragment : Fragment() {
                 ((longTime - calendar.timeInMillis) / 60000).toInt()
             } else ((longTime - calendar.timeInMillis) / 60000).toInt()
             when (minutes) {
-                0 -> txt += "Звонок менее чем через 1 мин."
-                in 1..59 -> txt += "Звонок через\n$minutes мин."
+                0 -> txt += getString(R.string.alarm_less_min)
+                in 1..59 -> txt += getString(R.string.alarm_through) + " $minutes " +
+                        getString(R.string.min_point)
                 else -> {
                     val hours = minutes / 60
-                    txt += "Звонок через\n$hours ч. ${minutes % 60} мин."
+                    txt += getString(R.string.alarm_through) + " $hours " + getString(R.string.ch) +
+                            " ${minutes % 60} " + getString(R.string.min_point)
                 }
             }
         }
@@ -242,14 +246,8 @@ class AlarmFragment : Fragment() {
     }
 }
 
-class VerticalSpaceItemDecoration(private val verticalSpaceHeight: Int) :
-    RecyclerView.ItemDecoration() {
-    override fun getItemOffsets(
-        outRect: Rect,
-        view: View,
-        parent: RecyclerView,
-        state: RecyclerView.State
-    ) {
+class VerticalSpaceItemDecoration(private val verticalSpaceHeight: Int) : RecyclerView.ItemDecoration() {
+    override fun getItemOffsets(outRect: Rect, view: View, parent: RecyclerView, state: RecyclerView.State) {
         super.getItemOffsets(outRect, view, parent, state)
         outRect.bottom = verticalSpaceHeight
     }

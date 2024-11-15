@@ -36,7 +36,7 @@ class BottomSheetFragment(
             binding.timePicker.minute = 0
         }
         else {
-            binding.heading.text = "Изменить будильник"
+            binding.heading.text = getString(R.string.change_alarm)
             binding.timePicker.hour = oldAlarm.timeHours
             binding.timePicker.minute = oldAlarm.timeMinutes
             if((oldAlarm.name != "default") && (oldAlarm.name != "")) binding.signalName.setText(oldAlarm.name)

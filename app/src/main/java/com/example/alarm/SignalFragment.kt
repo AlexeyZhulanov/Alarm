@@ -120,15 +120,15 @@ class SignalFragment(
     fun showTurnOffNotification() {
         val notificationManager =
             requireContext().getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        val channelId = "basic_channel_id"
-        val channelName = "Basic Notifications"
+        val channelId = getString(R.string.basic_channel_id)
+        val channelName = getString(R.string.basic_notifications)
 
         val channel =
             NotificationChannel(channelId, channelName, NotificationManager.IMPORTANCE_LOW).apply {
                 enableLights(true)
                 lightColor = android.graphics.Color.RED
                 enableVibration(true)
-                description = "Alarm notification"
+                description = getString(R.string.alarm_notification)
                 setSound(null, null)
             }
         notificationManager.createNotificationChannel(channel)
@@ -163,9 +163,9 @@ class SignalFragment(
         if(minutes <= 9) minutesText = "0$minutesText"
         val notificationBuilder = NotificationCompat.Builder(requireContext(), channelId)
             .setSmallIcon(R.mipmap.ic_alarm_adaptive_fore)
-            .setContentTitle("Будильник")
-            .setContentText("Повтор сигнала сработает в $hoursText:$minutesText")
-            .addAction(R.drawable.ic_clear, "Turn Off", turnOffPendingIntent)
+            .setContentTitle(getString(R.string.alarm))
+            .setContentText(getString(R.string.repeat_in) + " $hoursText:$minutesText")
+            .addAction(R.drawable.ic_clear, getString(R.string.turn_off), turnOffPendingIntent)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setCategory(NotificationCompat.CATEGORY_ALARM)
             .setDefaults(NotificationCompat.DEFAULT_ALL)
