@@ -12,19 +12,13 @@ import com.example.alarm.model.AlarmsListener
 import com.example.alarm.model.MyAlarmManager
 import com.example.alarm.model.Settings
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
-const val APP_PREFERENCES = "APP_PREFERENCES"
-const val PREF_INTERVAL = "PREF_INTERVAL"
-const val PREF_WALLPAPER = "PREF_WALLPAPER"
-const val PREF_THEME = "PREF_THEME"
 @HiltViewModel
 class AlarmViewModel @Inject constructor(
-    private val alarmsService: AlarmService
+    private val alarmsService: AlarmService,
+    private val preferences: SharedPreferences
 ) : ViewModel() {
 
     private val _alarms = MutableLiveData<List<Alarm>>()
@@ -32,10 +26,6 @@ class AlarmViewModel @Inject constructor(
 
     private val _initCompleted = MutableLiveData<Boolean>()
     val initCompleted: LiveData<Boolean> get() = _initCompleted
-
-    private val _wallpaper = MutableLiveData<String>()
-    val wallpaper: LiveData<String>  = _wallpaper
-
 
     private val alarmsListener: AlarmsListener = {
         _alarms.value = it
@@ -54,41 +44,41 @@ class AlarmViewModel @Inject constructor(
         alarmsService.removeListener(alarmsListener)
     }
 
-    suspend fun updateEnabledAlarm(alarm: Alarm, enabled: Boolean, context: Context, idx: Int) = withContext(Dispatchers.Main) {
-            if (!alarm.enabled) { //turn on
-                val s = async(Dispatchers.IO) { alarmsService.getSettings() }
-                MyAlarmManager(context, alarm, s.await()).startProcess()
+    fun updateEnabledAlarm(alarm: Alarm, enabled: Boolean, context: Context, callback: () -> Unit) {
+        viewModelScope.launch {
+            if (!alarm.enabled) {
+                val settings = alarmsService.getSettings()
+                MyAlarmManager(context, alarm, settings).startProcess()
             }
             else {
                 MyAlarmManager(context, alarm, Settings(0)).endProcess()
             }
-        withContext(Dispatchers.IO) {
             alarmsService.updateEnabled(alarm.id, enabled)
+            callback()
         }
-        return@withContext idx
     }
 
-    suspend fun addAlarm(alarm: Alarm, context: Context): Boolean = withContext(Dispatchers.Main) {
-            if(withContext(Dispatchers.IO) { alarmsService.addAlarm(alarm)}) {
-                val settings = async(Dispatchers.IO) { alarmsService.getSettings() }
-                MyAlarmManager(context, alarm, settings.await()).startProcess()
-                return@withContext true
+    fun addAlarm(alarm: Alarm, context: Context, callback: (Boolean) -> Unit) {
+        viewModelScope.launch {
+            val result = alarmsService.addAlarm(alarm)
+            if (result) {
+                val settings = alarmsService.getSettings()
+                MyAlarmManager(context, alarm, settings).startProcess()
             }
-            else {
-                return@withContext false
-            }
+            callback(result)
+        }
     }
 
-    suspend fun updateAlarm(alarmNew: Alarm, context: Context): Boolean = withContext(Dispatchers.Main) {
-        if(withContext(Dispatchers.IO) { alarmsService.updateAlarm(alarmNew)}) {
-            if (alarmNew.enabled) {
-                val settings = async(Dispatchers.IO) { alarmsService.getSettings() }
-                MyAlarmManager(context, alarmNew, settings.await()).restartProcess()
+    fun updateAlarm(alarmNew: Alarm, context: Context, callback: (Boolean) -> Unit) {
+        viewModelScope.launch {
+            val result = alarmsService.updateAlarm(alarmNew)
+            if(result) {
+                if(alarmNew.enabled) {
+                    val settings = alarmsService.getSettings()
+                    MyAlarmManager(context, alarmNew, settings).restartProcess()
+                }
             }
-            return@withContext true
-        }
-        else {
-            return@withContext false
+            callback(result)
         }
     }
 
@@ -97,75 +87,17 @@ class AlarmViewModel @Inject constructor(
             alarmsService.deleteAlarms(alarmsToDelete, context)
         }
     }
+
     fun getAndNotify() {
         viewModelScope.launch {
             alarmsService.getAlarms()
             alarmsService.notifyChanges()
         }
     }
-    fun getPreferencesWallpaperAndInterval(context: Context): Pair<String, Int>{
-        val preferences: SharedPreferences = context.getSharedPreferences(APP_PREFERENCES, Context.MODE_PRIVATE)
-        val wallpaper = preferences.getString(PREF_WALLPAPER, "")
+
+    fun getPreferencesWallpaperAndInterval(): Pair<String, Int> {
+        val wallpaper = preferences.getString(PREF_WALLPAPER, "") ?: ""
         val interval: Int = preferences.getInt(PREF_INTERVAL, 5)
-        return Pair(wallpaper!!, interval)
-    }
-    fun getPreferencesTheme(context: Context): Int {
-        val preferences: SharedPreferences = context.getSharedPreferences(APP_PREFERENCES, Context.MODE_PRIVATE)
-        return preferences.getInt(PREF_THEME, 0)
-    }
-
-    fun editPreferencesWallpaper(context: Context, wallpaper: String) {
-        viewModelScope.launch {
-            withContext(Dispatchers.IO) {
-            val preferences: SharedPreferences =
-                context.getSharedPreferences(APP_PREFERENCES, Context.MODE_PRIVATE)
-            preferences.edit().putString(PREF_WALLPAPER, wallpaper).apply()
-        }
-        }
-    }
-    fun editPreferencesInterval(context: Context, interval: Int) {
-        viewModelScope.launch {
-            withContext(Dispatchers.IO) {
-                val preferences: SharedPreferences =
-                    context.getSharedPreferences(APP_PREFERENCES, Context.MODE_PRIVATE)
-                preferences.edit().putInt(PREF_INTERVAL, interval).apply()
-            }
-        }
-    }
-    fun editPreferencesTheme(context: Context, theme: Int) {
-        viewModelScope.launch {
-            withContext(Dispatchers.IO) {
-                val preferences: SharedPreferences =
-                    context.getSharedPreferences(APP_PREFERENCES, Context.MODE_PRIVATE)
-                preferences.edit().putInt(PREF_THEME, theme).apply()
-            }
-        }
-    }
-
-    fun registerPreferences(context: Context) {
-        val prefs = context.getSharedPreferences(APP_PREFERENCES, Context.MODE_PRIVATE)
-        prefs.registerOnSharedPreferenceChangeListener(preferenceChangeListener)
-    }
-    fun unregisterPreferences(context: Context) {
-        val prefs = context.getSharedPreferences(APP_PREFERENCES, Context.MODE_PRIVATE)
-        prefs.unregisterOnSharedPreferenceChangeListener(preferenceChangeListener)
-    }
-
-    private val preferenceChangeListener = SharedPreferences.OnSharedPreferenceChangeListener { sharedPreferences, key ->
-        if (key == PREF_WALLPAPER) {
-            val tmp = sharedPreferences.getString(PREF_WALLPAPER, "")
-            _wallpaper.postValue(tmp!!)
-        }
-    }
-
-    suspend fun getSettings(): Settings = withContext(Dispatchers.IO) {
-        return@withContext alarmsService.getSettings()
-    }
-    fun updateSettings(settings: Settings) {
-        viewModelScope.launch {
-            withContext(Dispatchers.IO) {
-                alarmsService.updateSettings(settings)
-            }
-        }
+        return Pair(wallpaper, interval)
     }
 }

@@ -75,7 +75,9 @@ class MyAlarmManager(
             return@async str
         }
         val res = part.await()
-        Toast.makeText(context, res, Toast.LENGTH_SHORT).show()
+        withContext(Dispatchers.Main) {
+            Toast.makeText(context, res, Toast.LENGTH_SHORT).show()
+        }
     }
 
     suspend fun endProcess() = withContext(Dispatchers.Default) {
@@ -83,7 +85,7 @@ class MyAlarmManager(
         alarmManager.cancel(alarmIntent)
     }
 
-    suspend fun restartProcess() = withContext(Dispatchers.Main + job) {
+    suspend fun restartProcess() = withContext(Dispatchers.Main) {
         endProcess()
         startProcess()
     }

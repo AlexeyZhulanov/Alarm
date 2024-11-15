@@ -48,7 +48,7 @@ class SignalActivity : AppCompatActivity() {
         )
         val alarmName = intent.getStringExtra("alarmName") ?: ""
         val alarmId = intent.getLongExtra("alarmId", 0)
-        val settings = IntentCompat.getParcelableExtra(intent, "settings", Settings::class.java)
+        val settings = IntentCompat.getParcelableExtra(intent, "settings", Settings::class.java) ?: Settings(0)
         if (savedInstanceState == null) {
             supportFragmentManager
                 .beginTransaction()

@@ -38,9 +38,8 @@
     <string name="min">мин.</string>
     <string name="customize">Кастомизация</string>
     <string name="wallpapers_input">Обои:</string>
-    <string name="wallpapers_change">Сменить обои</string>
     <string name="color_theme_input">Цветовая тема:</string>
-    <string name="theme_change">Сменить тему</string>
+    <string name="change">Сменить</string>
     <string name="repeat_caps">ПОВТОР</string>
     <string name="off_all_alarms">Выключить все будильники</string>
     <string name="volume_off">volume_off</string>

@@ -38,9 +38,6 @@ class MainActivity : AppCompatActivity() {
     private val job = Job()
     private val uiScope = CoroutineScope(Dispatchers.Main + job)
 
-    private val currentFragment: Fragment
-        get() = supportFragmentManager.findFragmentById(R.id.fragmentContainer)!!
-
     private val fragmentListener = object : FragmentManager.FragmentLifecycleCallbacks() {
         override fun onFragmentViewCreated(fm: FragmentManager, f: Fragment, v: View, savedInstanceState: Bundle?) {
             super.onFragmentViewCreated(fm, f, v, savedInstanceState)

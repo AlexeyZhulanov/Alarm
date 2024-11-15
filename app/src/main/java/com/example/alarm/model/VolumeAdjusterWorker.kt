@@ -1,4 +1,4 @@
-package com.example.alarm
+package com.example.alarm.model
 
 import android.content.Context
 import android.media.AudioManager

@@ -30,6 +30,7 @@ import androidx.work.WorkManager
 import androidx.work.workDataOf
 import com.example.alarm.databinding.FragmentSignalBinding
 import com.example.alarm.model.Alarm
+import com.example.alarm.model.AlarmWorker
 import com.example.alarm.model.MyAlarmManager
 import com.example.alarm.model.Settings
 import com.ncorti.slidetoact.SlideToActView
@@ -41,7 +42,7 @@ import kotlinx.coroutines.launch
 class SignalFragment(
     val name: String,
     val id: Long,
-    val settings: Settings? = Settings(0)
+    val settings: Settings
 ) : Fragment() {
 
     private val alarmPlug = Alarm(id = id, name = name)
@@ -54,7 +55,6 @@ class SignalFragment(
     private val uiScope = CoroutineScope(Dispatchers.Main + job)
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
-        Log.d("testSignalFrag", "works")
         val binding = FragmentSignalBinding.inflate(inflater, container, false)
 
         val updateWorkRequest = OneTimeWorkRequestBuilder<AlarmWorker>()
@@ -62,7 +62,7 @@ class SignalFragment(
             .build()
 
         WorkManager.getInstance(requireContext()).enqueue(updateWorkRequest)
-        selectMelody(settings!!)
+        selectMelody(settings)
         if(settings.vibration) startVibrator()
         val tmp = Calendar.getInstance().time.toString()
         val str = tmp.split(" ")
@@ -95,8 +95,8 @@ class SignalFragment(
     }
 
     fun dropAndRepeatFragment() {
-        settings!!.repetitions -= 1
-        if(settings!!.repetitions > -1) {
+        settings.repetitions -= 1
+        if(settings.repetitions > -1) {
             uiScope.launch {
                 val ctx = requireContextOrNull()
                 if (ctx == null) {
@@ -154,7 +154,7 @@ class SignalFragment(
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
         val calendar = Calendar.getInstance(ULocale.ROOT)
-        calendar.timeInMillis = System.currentTimeMillis() + settings!!.interval.toLong()*60000
+        calendar.timeInMillis = System.currentTimeMillis() + settings.interval.toLong()*60000
         val hours = calendar.get(Calendar.HOUR_OF_DAY)
         val minutes = calendar.get(Calendar.MINUTE)
         var hoursText = hours.toString()
@@ -255,7 +255,7 @@ class SignalFragment(
         mediaPlayer.release()
         audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, originalMusicVolume, 0) // Restore original music volume
         audioManager.abandonAudioFocusRequest(focusRequest) // Abandon audio focus request
-        if(settings!!.vibration) vibrator.cancel()
+        if(settings.vibration) vibrator.cancel()
     }
 }
 const val LOCAL_BROADCAST_KEY3 = "alarm_turnoff"

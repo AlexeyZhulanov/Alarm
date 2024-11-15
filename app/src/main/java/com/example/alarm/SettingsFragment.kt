@@ -31,16 +31,16 @@ class SettingsFragment : Fragment() {
     private lateinit var binding: FragmentSettingsBinding
     private var globalId: Long = 0
     private lateinit var mediaPlayer: MediaPlayer
-    private val alarmViewModel: AlarmViewModel by viewModels()
+    private val settingsViewModel: SettingsViewModel by viewModels()
 
     @SuppressLint("DiscouragedApi")
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         binding = FragmentSettingsBinding.inflate(inflater, container, false)
-        alarmViewModel.registerPreferences(requireContext())
-        alarmViewModel.wallpaper.observe(viewLifecycleOwner) {
+        settingsViewModel.registerPreferences()
+        settingsViewModel.wallpaper.observe(viewLifecycleOwner) {
             updateWallpapers(it)
         }
-        val (wallpaper, _) = alarmViewModel.getPreferencesWallpaperAndInterval(requireContext())
+        val wallpaper = settingsViewModel.getPreferencesWallpaper()
         if(wallpaper != "") {
             binding.wallpaperName.text = wallpaper
             val resId = resources.getIdentifier(wallpaper, "drawable", requireContext().packageName)
@@ -49,10 +49,10 @@ class SettingsFragment : Fragment() {
         else {
             binding.wallpaperName.text = "Classic"
         }
-        val themeNumber = alarmViewModel.getPreferencesTheme(requireContext())
+        val themeNumber = settingsViewModel.getPreferencesTheme()
         if(themeNumber != 0) binding.colorThemeName.text = "Theme ${themeNumber+1}" else binding.colorThemeName.text = "Classic"
         lifecycleScope.launch {
-            val settings = alarmViewModel.getSettings()
+            val settings = settingsViewModel.getSettings()
             binding.melodyName.text = settings.melody
             binding.repeatRadioGroup.isEnabled = settings.repetitions == 1
             binding.switchVibration.isChecked = settings.vibration
@@ -73,7 +73,7 @@ class SettingsFragment : Fragment() {
         }
         binding.playMelody.setOnClickListener {
             lifecycleScope.launch {
-                val settings = async(Dispatchers.IO) { alarmViewModel.getSettings() }
+                val settings = async(Dispatchers.IO) { settingsViewModel.getSettings() }
                 when (settings.await().melody) {
                     getString(R.string.melody1) -> playMelody(R.raw.default_signal1)
                     getString(R.string.melody2) -> playMelody(R.raw.default_signal2)
@@ -95,33 +95,33 @@ class SettingsFragment : Fragment() {
         }
         binding.switchVibration.setOnClickListener {
             val s = readSettings(globalId)
-            lifecycleScope.launch { alarmViewModel.updateSettings(s) }
+            lifecycleScope.launch { settingsViewModel.updateSettings(s) }
         }
         binding.repeats3.setOnClickListener {
             val s = readSettings(globalId)
-            lifecycleScope.launch { alarmViewModel.updateSettings(s) }
+            lifecycleScope.launch { settingsViewModel.updateSettings(s) }
         }
         binding.repeats5.setOnClickListener {
             val s = readSettings(globalId)
-            lifecycleScope.launch { alarmViewModel.updateSettings(s) }
+            lifecycleScope.launch { settingsViewModel.updateSettings(s) }
         }
         binding.repeatsInfinite.setOnClickListener {
             val s = readSettings(globalId)
-            lifecycleScope.launch { alarmViewModel.updateSettings(s) }
+            lifecycleScope.launch { settingsViewModel.updateSettings(s) }
         }
         binding.interval3.setOnClickListener {
             val s = readSettings(globalId)
-            lifecycleScope.launch { alarmViewModel.updateSettings(s) }
+            lifecycleScope.launch { settingsViewModel.updateSettings(s) }
             updatePrefs(3)
         }
         binding.interval5.setOnClickListener {
             val s = readSettings(globalId)
-            lifecycleScope.launch { alarmViewModel.updateSettings(s) }
+            lifecycleScope.launch { settingsViewModel.updateSettings(s) }
             updatePrefs(5)
         }
         binding.interval10.setOnClickListener {
             val s = readSettings(globalId)
-            lifecycleScope.launch { alarmViewModel.updateSettings(s) }
+            lifecycleScope.launch { settingsViewModel.updateSettings(s) }
             updatePrefs(10)
         }
         binding.changeColorTheme.setOnClickListener {
@@ -149,7 +149,7 @@ class SettingsFragment : Fragment() {
     }
 
     private fun updatePrefs(interval: Int) {
-        alarmViewModel.editPreferencesInterval(requireContext(), interval)
+        settingsViewModel.editPreferencesInterval(interval)
     }
     private fun showSignalsPopupMenu(view: View) {
         val popupMenu = PopupMenu(requireContext(), view)
@@ -174,7 +174,7 @@ class SettingsFragment : Fragment() {
             newMelodyName?.let { name ->
                 binding.melodyName.text = name
                 val s = readSettings(globalId)
-                lifecycleScope.launch { alarmViewModel.updateSettings(s) }
+                lifecycleScope.launch { settingsViewModel.updateSettings(s) }
                 true
             } ?: false
         }
@@ -224,7 +224,7 @@ class SettingsFragment : Fragment() {
                 "10." -> "wallpaper10"
                 else -> ""
             }
-            alarmViewModel.editPreferencesWallpaper(requireContext(), temp)
+            settingsViewModel.editPreferencesWallpaper(temp)
             popupWindow.dismiss()
         }
 
@@ -259,7 +259,7 @@ class SettingsFragment : Fragment() {
             ColorThemeMenuItem(R.color.color8_main, R.color.color8_secondary, 8)
         )
         val adapter = ColorThemeMenuAdapter(menuItems) { menuItem ->
-            alarmViewModel.editPreferencesTheme(requireContext(), menuItem.themeNumber)
+            settingsViewModel.editPreferencesTheme(menuItem.themeNumber)
             requireActivity().recreate()
             popupWindow.dismiss()
         }
@@ -313,6 +313,6 @@ class SettingsFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
-        alarmViewModel.unregisterPreferences(requireContext())
+        settingsViewModel.unregisterPreferences()
     }
 }

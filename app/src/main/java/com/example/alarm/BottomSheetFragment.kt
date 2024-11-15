@@ -22,11 +22,11 @@ interface BottomSheetListener {
 class BottomSheetFragment(
     private val isAdd: Boolean,
     private val oldAlarm: Alarm,
+    private val alarmViewModel: AlarmViewModel,
     private val bottomSheetListener: BottomSheetListener
 ) : BottomSheetDialogFragment() {
 
     private lateinit var binding: FragmentBottomsheetBinding
-    private val alarmViewModel: AlarmViewModel by viewModels()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -60,15 +60,16 @@ class BottomSheetFragment(
             id = 0,
             timeHours = binding.timePicker.hour,
             timeMinutes = binding.timePicker.minute,
-            name = if(binding.signalName.text.toString() == "") "default" else binding.signalName.text.toString() ,
+            name = if(binding.signalName.text.toString() == "") "default" else binding.signalName.text.toString(),
             enabled = true
         )
         lifecycleScope.launch {
-            if(alarmViewModel.addAlarm(alarm, requireContext())) {
-                bottomSheetListener.onAddAlarm(alarm)
-            }
-            else {
-                Toast.makeText(context, getString(R.string.error_is_exist), Toast.LENGTH_SHORT).show()
+            alarmViewModel.addAlarm(alarm, requireContext()) { success ->
+                if(success) {
+                    bottomSheetListener.onAddAlarm(alarm)
+                } else {
+                    Toast.makeText(context, getString(R.string.error_is_exist), Toast.LENGTH_SHORT).show()
+                }
             }
             dismiss()
         }
@@ -82,11 +83,12 @@ class BottomSheetFragment(
             enabled = oldAlarm.enabled
         )
         lifecycleScope.launch {
-            if(alarmViewModel.updateAlarm(alarmNew, requireContext())) {
-                bottomSheetListener.onChangeAlarm(oldAlarm, alarmNew)
-            }
-            else {
-                Toast.makeText(context, getString(R.string.error_is_exist), Toast.LENGTH_SHORT).show()
+            alarmViewModel.updateAlarm(alarmNew, requireContext()) { success ->
+                if(success) {
+                    bottomSheetListener.onChangeAlarm(oldAlarm, alarmNew)
+                } else {
+                    Toast.makeText(context, getString(R.string.error_is_exist), Toast.LENGTH_SHORT).show()
+                }
             }
             dismiss()
         }

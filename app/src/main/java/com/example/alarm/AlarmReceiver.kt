@@ -21,9 +21,11 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.workDataOf
 import com.example.alarm.model.Alarm
+import com.example.alarm.model.AlarmWorker
 import com.example.alarm.model.AppVisibilityTracker
 import com.example.alarm.model.MyAlarmManager
 import com.example.alarm.model.Settings
+import com.example.alarm.model.VolumeAdjusterWorker
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job

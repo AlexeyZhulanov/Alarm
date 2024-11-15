@@ -1,8 +1,7 @@
-package com.example.alarm
+package com.example.alarm.model
 
 import android.content.Context
 import androidx.room.Room
-import com.example.alarm.model.AlarmService
 import com.example.alarm.room.AppDatabase
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters

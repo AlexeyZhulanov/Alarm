@@ -2,7 +2,9 @@ package com.example.alarm.di
 
 import android.app.AlarmManager
 import android.content.Context
+import android.content.SharedPreferences
 import androidx.room.Room
+import com.example.alarm.APP_PREFERENCES
 import com.example.alarm.model.AlarmService
 import com.example.alarm.room.AlarmDao
 import com.example.alarm.room.AppDatabase
@@ -47,5 +49,11 @@ object AlarmModule {
     @Provides
     fun provideAlarmManager(@ApplicationContext context: Context): AlarmManager {
         return context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+    }
+
+    @Provides
+    @Singleton
+    fun provideSharedPreferences(@ApplicationContext context: Context): SharedPreferences {
+        return context.getSharedPreferences(APP_PREFERENCES, Context.MODE_PRIVATE)
     }
 }
