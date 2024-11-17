@@ -1,4 +1,4 @@
-package com.example.alarm
+package com.example.alarm.model
 
 import android.annotation.SuppressLint
 import android.app.NotificationChannel
@@ -20,12 +20,8 @@ import androidx.core.content.IntentCompat
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.workDataOf
-import com.example.alarm.model.Alarm
-import com.example.alarm.model.AlarmWorker
-import com.example.alarm.model.AppVisibilityTracker
-import com.example.alarm.model.MyAlarmManager
-import com.example.alarm.model.Settings
-import com.example.alarm.model.VolumeAdjusterWorker
+import com.example.alarm.R
+import com.example.alarm.SignalActivity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -153,18 +149,34 @@ class AlarmReceiver : BroadcastReceiver() {
 
     private fun selectMelody(settings: Settings?, context: Context) {
         mediaPlayer = when(settings?.melody ?: -1) {
-            context.getString(R.string.melody1) -> MediaPlayer.create(context, R.raw.default_signal1)
-            context.getString(R.string.melody2) -> MediaPlayer.create(context, R.raw.default_signal2)
-            context.getString(R.string.melody3) -> MediaPlayer.create(context, R.raw.default_signal3)
-            context.getString(R.string.melody4) -> MediaPlayer.create(context, R.raw.default_signal4)
-            context.getString(R.string.melody5) -> MediaPlayer.create(context, R.raw.default_signal5)
+            context.getString(R.string.melody1) -> MediaPlayer.create(context,
+                R.raw.default_signal1
+            )
+            context.getString(R.string.melody2) -> MediaPlayer.create(context,
+                R.raw.default_signal2
+            )
+            context.getString(R.string.melody3) -> MediaPlayer.create(context,
+                R.raw.default_signal3
+            )
+            context.getString(R.string.melody4) -> MediaPlayer.create(context,
+                R.raw.default_signal4
+            )
+            context.getString(R.string.melody5) -> MediaPlayer.create(context,
+                R.raw.default_signal5
+            )
             context.getString(R.string.melody6) -> MediaPlayer.create(context, R.raw.signal)
             context.getString(R.string.melody7) -> MediaPlayer.create(context, R.raw.banjo_signal)
             context.getString(R.string.melody8) -> MediaPlayer.create(context, R.raw.morning_signal)
             context.getString(R.string.melody9) -> MediaPlayer.create(context, R.raw.simple_signal)
-            context.getString(R.string.melody10) -> MediaPlayer.create(context, R.raw.fitness_signal)
-            context.getString(R.string.melody11) -> MediaPlayer.create(context, R.raw.medieval_signal)
-            context.getString(R.string.melody12) -> MediaPlayer.create(context, R.raw.introduction_signal)
+            context.getString(R.string.melody10) -> MediaPlayer.create(context,
+                R.raw.fitness_signal
+            )
+            context.getString(R.string.melody11) -> MediaPlayer.create(context,
+                R.raw.medieval_signal
+            )
+            context.getString(R.string.melody12) -> MediaPlayer.create(context,
+                R.raw.introduction_signal
+            )
             else -> MediaPlayer.create(context, R.raw.default_signal1)
         }
     }

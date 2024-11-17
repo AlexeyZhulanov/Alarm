@@ -47,7 +47,7 @@ class SettingsViewModel @Inject constructor(
         preferences.unregisterOnSharedPreferenceChangeListener(preferenceChangeListener)
     }
 
-    private val preferenceChangeListener = SharedPreferences.OnSharedPreferenceChangeListener { sharedPreferences, key ->
+    val preferenceChangeListener = SharedPreferences.OnSharedPreferenceChangeListener { sharedPreferences, key ->
         if (key == PREF_WALLPAPER) {
             val tmp = sharedPreferences.getString(PREF_WALLPAPER, "") ?: ""
             _wallpaper.postValue(tmp)

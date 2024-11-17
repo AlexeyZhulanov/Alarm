@@ -6,9 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.icu.util.Calendar
 import android.icu.util.ULocale
-import android.util.Log
 import android.widget.Toast
-import com.example.alarm.AlarmReceiver
 import com.example.alarm.R
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

@@ -14,6 +14,8 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import javax.inject.Singleton
 
 @Module
@@ -44,7 +46,7 @@ object AlarmModule {
     @Provides
     @Singleton
     fun provideAlarmService(alarmDao: AlarmDao, settingsDao: SettingsDao): AlarmService {
-        return AlarmService(alarmDao, settingsDao)
+        return AlarmService(alarmDao, settingsDao, provideIoDispatcher())
     }
     @Provides
     fun provideAlarmManager(@ApplicationContext context: Context): AlarmManager {
@@ -56,4 +58,17 @@ object AlarmModule {
     fun provideSharedPreferences(@ApplicationContext context: Context): SharedPreferences {
         return context.getSharedPreferences(APP_PREFERENCES, Context.MODE_PRIVATE)
     }
+
+    @Provides
+    @DefaultDispatcher
+    fun provideDefaultDispatcher(): CoroutineDispatcher = Dispatchers.Default
+
+    @Provides
+    @IoDispatcher
+    fun provideIoDispatcher(): CoroutineDispatcher = Dispatchers.IO
+
+    @Provides
+    @MainDispatcher
+    fun provideMainDispatcher(): CoroutineDispatcher = Dispatchers.Main
+
 }

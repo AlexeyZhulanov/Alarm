@@ -36,7 +36,7 @@
         </activity>
 
         <receiver
-            android:name=".AlarmReceiver"
+            android:name=".model.AlarmReceiver"
             android:exported="true"
             android:enabled="true"
             android:permission="android.permission.WAKE_LOCK">
