@@ -65,6 +65,7 @@ dependencies {
     implementation("androidx.work:work-runtime-ktx:2.9.0")
     implementation("androidx.test.ext:junit-ktx:1.2.1")
     implementation("org.slf4j:slf4j-nop:2.0.7")
+    implementation("androidx.test.espresso:espresso-contrib:3.6.1")
     val roomVersion = "2.6.1"
     val hiltVersion = "2.48"
     implementation("androidx.core:core-ktx:1.13.1")
@@ -95,6 +96,7 @@ dependencies {
     testImplementation("org.mockito.kotlin:mockito-kotlin:4.1.0")
     testImplementation("androidx.arch.core:core-testing:2.1.0")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
+    androidTestImplementation("androidx.test.uiautomator:uiautomator:2.2.0")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
     androidTestImplementation(platform("androidx.compose:compose-bom:2023.08.00"))
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
