@@ -78,4 +78,8 @@
     <string name="wallpaper10">wallpaper10</string>
     <string name="repeat_in">Повтор сигнала сработает в</string>
     <string name="not_implemented">Пока не реализовано</string>
+    <string name="access">Разрешить</string>
+    <string name="cancel_caps">ОТМЕНА</string>
+    <string name="error_screen_on">Экран так и не включился за отведенное время</string>
+    <string name="overflowmenubutton">OverflowMenuButton</string>
 </resources>

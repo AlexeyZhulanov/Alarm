@@ -1,9 +1,11 @@
 package com.example.alarm
 
+import android.content.Context
 import android.os.Build
 import android.provider.Settings
 import android.view.View
 import androidx.recyclerview.widget.RecyclerView
+import androidx.test.core.app.ApplicationProvider
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.UiController
 import androidx.test.espresso.ViewAction
@@ -31,13 +33,14 @@ class AlarmAdapterUiTest {
 
     @Test
     fun testEnableAlarmAndDelete() {
+        val context = ApplicationProvider.getApplicationContext<Context>()
         val uiDevice = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
 
         // Step 1: Handle notifications permission dialog
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             try {
-                uiDevice.wait(Until.hasObject(By.text("Разрешить")), 5_000)
-                uiDevice.findObject(By.text("Разрешить")).click()
+                uiDevice.wait(Until.hasObject(By.text(context.getString(R.string.access))), 5_000)
+                uiDevice.findObject(By.text(context.getString(R.string.access))).click()
             } catch (e: UiObjectNotFoundException) {
                 // Permission dialog not shown, continue with the test
             }
@@ -46,9 +49,8 @@ class AlarmAdapterUiTest {
         // Step 2: Handle overlay permission dialog
         if (!Settings.canDrawOverlays(InstrumentationRegistry.getInstrumentation().targetContext)) {
             try {
-                // Wait for and click the "НАСТРОЙКИ" button
-                uiDevice.wait(Until.hasObject(By.text("ОТМЕНА")), 5_000)
-                uiDevice.findObject(By.text("ОТМЕНА")).click()
+                uiDevice.wait(Until.hasObject(By.text(context.getString(R.string.cancel_caps))), 5_000)
+                uiDevice.findObject(By.text(context.getString(R.string.cancel_caps))).click()
                 } catch (e: UiObjectNotFoundException) {
                 // If the dialog or required options are not found, continue with the test
             }
@@ -64,7 +66,7 @@ class AlarmAdapterUiTest {
             )
 
         // Step 4: Open the popup menu by clicking the toolbar menu (3 dots)
-        onView(withClassName(endsWith("OverflowMenuButton")))
+        onView(withClassName(endsWith(context.getString(R.string.overflowmenubutton))))
             .perform(click())
 
         // Step 5: Click the second item in the popup menu
