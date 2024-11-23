@@ -66,6 +66,8 @@ dependencies {
     implementation("androidx.test.ext:junit-ktx:1.2.1")
     implementation("org.slf4j:slf4j-nop:2.0.7")
     implementation("androidx.test.espresso:espresso-contrib:3.6.1")
+    implementation("androidx.hilt:hilt-common:1.2.0")
+    implementation("androidx.hilt:hilt-work:1.2.0")
     val roomVersion = "2.6.1"
     val hiltVersion = "2.48"
     implementation("androidx.core:core-ktx:1.13.1")

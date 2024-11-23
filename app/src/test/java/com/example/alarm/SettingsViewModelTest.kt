@@ -3,21 +3,17 @@ package com.example.alarm
 import android.content.SharedPreferences
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.lifecycle.Observer
-import com.example.alarm.model.Alarm
 import com.example.alarm.model.AlarmService
+import com.example.alarm.model.MyAlarmManager
 import com.example.alarm.model.Settings
 import com.example.alarm.room.AlarmDao
-import com.example.alarm.room.AlarmDbEntity
 import com.example.alarm.room.SettingsDao
 import com.example.alarm.room.SettingsDbEntity
 import io.mockk.coEvery
-import io.mockk.coVerify
 import io.mockk.mockk
 import junit.framework.TestCase.assertEquals
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -43,13 +39,14 @@ class SettingsViewModelTest {
     private val mockEditor: SharedPreferences.Editor = mock()
     private val observer: Observer<String> = mock()
     private val testDispatcher = UnconfinedTestDispatcher()
+    private val mockMyAlarmManager: MyAlarmManager = mockk()
 
     @Before
     fun setup() {
         Dispatchers.setMain(testDispatcher)
         `when`(mockPreferences.edit()).thenReturn(mockEditor)
         `when`(mockEditor.putString(anyString(), anyString())).thenReturn(mockEditor)
-        alarmService = AlarmService(mockAlarmDao, mockSettingsDao, testDispatcher, true)
+        alarmService = AlarmService(mockAlarmDao, mockSettingsDao, testDispatcher, mockMyAlarmManager, true)
         viewModel = SettingsViewModel(alarmService, mockPreferences)
     }
 

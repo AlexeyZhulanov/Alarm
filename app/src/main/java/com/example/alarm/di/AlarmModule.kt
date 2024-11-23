@@ -6,6 +6,9 @@ import android.content.SharedPreferences
 import androidx.room.Room
 import com.example.alarm.APP_PREFERENCES
 import com.example.alarm.model.AlarmService
+import com.example.alarm.model.DefaultTimeProvider
+import com.example.alarm.model.MyAlarmManager
+import com.example.alarm.model.TimeProvider
 import com.example.alarm.room.AlarmDao
 import com.example.alarm.room.AppDatabase
 import com.example.alarm.room.SettingsDao
@@ -45,12 +48,39 @@ object AlarmModule {
 
     @Provides
     @Singleton
-    fun provideAlarmService(alarmDao: AlarmDao, settingsDao: SettingsDao): AlarmService {
-        return AlarmService(alarmDao, settingsDao, provideIoDispatcher())
+    fun provideAlarmService(
+        alarmDao: AlarmDao,
+        settingsDao: SettingsDao,
+        myAlarmManager: MyAlarmManager,
+        @IoDispatcher dispatcher: CoroutineDispatcher
+    ): AlarmService {
+        return AlarmService(alarmDao, settingsDao, dispatcher, myAlarmManager)
     }
     @Provides
     fun provideAlarmManager(@ApplicationContext context: Context): AlarmManager {
         return context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+    }
+
+    @Provides
+    fun provideTimeProvider(): TimeProvider {
+        return DefaultTimeProvider()
+    }
+
+    @Provides
+    @Singleton
+    fun provideMyAlarmManager(
+        context: Context,
+        alarmManager: AlarmManager,
+        timeProvider: TimeProvider,
+        @MainDispatcher mainDispatcher: CoroutineDispatcher,
+        @DefaultDispatcher defaultDispatcher: CoroutineDispatcher
+    ): MyAlarmManager {
+        return MyAlarmManager(context, alarmManager, timeProvider, mainDispatcher, defaultDispatcher)
+    }
+
+    @Provides
+    fun provideContext(@ApplicationContext context: Context): Context {
+        return context
     }
 
     @Provides

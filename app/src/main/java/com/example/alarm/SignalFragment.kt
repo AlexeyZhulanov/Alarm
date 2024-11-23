@@ -19,7 +19,6 @@ import android.os.Bundle
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -34,15 +33,17 @@ import com.example.alarm.model.AlarmWorker
 import com.example.alarm.model.MyAlarmManager
 import com.example.alarm.model.Settings
 import com.ncorti.slidetoact.SlideToActView
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
+@AndroidEntryPoint
 class SignalFragment(
     val name: String,
     val id: Long,
-    val settings: Settings
+    val settings: Settings,
+    val myAlarmManager: MyAlarmManager
 ) : Fragment() {
 
     private val alarmPlug = Alarm(id = id, name = name)
@@ -51,14 +52,13 @@ class SignalFragment(
     private lateinit var audioManager: AudioManager
     private lateinit var focusRequest: AudioFocusRequest
     private var originalMusicVolume: Int = 0
-    private val job = Job()
-    private val uiScope = CoroutineScope(Dispatchers.Main + job)
+    private val uiScope = CoroutineScope(Dispatchers.Main)
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         val binding = FragmentSignalBinding.inflate(inflater, container, false)
 
         val updateWorkRequest = OneTimeWorkRequestBuilder<AlarmWorker>()
-            .setInputData(workDataOf("alarmId" to alarmPlug.id, "enabled" to 0))
+            .setInputData(workDataOf("alarmId" to id))
             .build()
 
         WorkManager.getInstance(requireContext()).enqueue(updateWorkRequest)
@@ -72,7 +72,6 @@ class SignalFragment(
         binding.currentTimeTextView.text = time
         binding.currentDateTextView.text = date
         binding.nameTextView.text = name
-        val fragmentContext = requireContext()
         if(settings.repetitions <= 0) {
             binding.repeatButton.visibility = View.GONE
         }
@@ -85,7 +84,7 @@ class SignalFragment(
         binding.slideButton.onSlideCompleteListener = object : SlideToActView.OnSlideCompleteListener {
             override fun onSlideComplete(view: SlideToActView) {
                 uiScope.launch {
-                    MyAlarmManager(fragmentContext, alarmPlug, Settings(0)).endProcess()
+                    myAlarmManager.endProcess(alarmPlug)
                 }
                 requireActivity().onBackPressedDispatcher.onBackPressed()
             }
@@ -98,13 +97,8 @@ class SignalFragment(
         settings.repetitions -= 1
         if(settings.repetitions > -1) {
             uiScope.launch {
-                val ctx = requireContextOrNull()
-                if (ctx == null) {
-                    Log.e("dropAndRepeatFragment", "Context is null")
-                    return@launch
-                }
-                MyAlarmManager(ctx, alarmPlug, Settings(0)).endProcess()
-                MyAlarmManager(ctx, alarmPlug, settings).repeatProcess()
+                myAlarmManager.endProcess(alarmPlug)
+                myAlarmManager.repeatProcess(alarmPlug, settings)
                 showTurnOffNotification()
                 requireActivity().onBackPressedDispatcher.onBackPressed()
             }
@@ -134,7 +128,7 @@ class SignalFragment(
         notificationManager.createNotificationChannel(channel)
 
         val updateWorkRequest = OneTimeWorkRequestBuilder<AlarmWorker>()
-            .setInputData(workDataOf("alarmId" to id, "enabled" to 0))
+            .setInputData(workDataOf("alarmId" to id))
             .build()
 
         WorkManager.getInstance(requireContext()).enqueue(updateWorkRequest)
@@ -179,14 +173,13 @@ class SignalFragment(
 
     private val turnOffReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
-            val cont = context
             uiScope.launch {
                 val alarmId = intent.getLongExtra("alarmId", 0)
                 val notificationId = intent.getIntExtra("notificationId",-1)
                 val alarmPlug = Alarm(alarmId)
-                MyAlarmManager(cont, alarmPlug, Settings(0)).endProcess()
+                myAlarmManager.endProcess(alarmPlug)
                 val notificationManager =
-                    cont.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+                    context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
                 notificationManager.cancel(notificationId)
             }
         }

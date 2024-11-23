@@ -1,17 +1,20 @@
 package com.example.alarm
 
+import android.app.AlarmManager
+import android.app.PendingIntent
+import android.content.Context
 import android.content.SharedPreferences
-import android.icu.util.Calendar
+import android.widget.Toast
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import com.example.alarm.model.Alarm
 import com.example.alarm.model.AlarmService
 import com.example.alarm.model.AlarmsListener
 import com.example.alarm.model.MyAlarmManager
 import com.example.alarm.model.Settings
+import com.example.alarm.model.TimeProvider
 import com.example.alarm.room.AlarmDao
 import com.example.alarm.room.AlarmDbEntity
 import com.example.alarm.room.SettingsDao
-import com.example.alarm.room.SettingsDbEntity
 import io.mockk.Runs
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -23,13 +26,12 @@ import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertTrue
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
-import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
+import org.junit.Assert.assertNotEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -45,16 +47,34 @@ class AlarmViewModelTest {
 
     private lateinit var alarmViewModel: AlarmViewModel
     private lateinit var alarmService: AlarmService
+    private lateinit var myAlarmManager: MyAlarmManager
     private val mockAlarmDao: AlarmDao = mockk()
     private val mockSettingsDao: SettingsDao = mockk()
     private val mockPreferences: SharedPreferences = mock()
     private val testDispatcher = UnconfinedTestDispatcher()
+    private val mockContext: Context = mockk()
+    private val mockAlarmManager: AlarmManager = mockk()
+    private val mockTimeProvider: TimeProvider = mockk()
+    private val mockPendingIntent: PendingIntent = mockk()
 
     @Before
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
-        alarmService = AlarmService(mockAlarmDao, mockSettingsDao, testDispatcher, skipInit = true, skipManager = true)
-        alarmViewModel = AlarmViewModel(alarmService, mockPreferences, testDispatcher)
+        coEvery { mockTimeProvider.getNextAlarmTimeMillis(any(), any()) } returns 1000L
+        coEvery { mockTimeProvider.getCurrentTimeMillis() } returns 0L
+        every { mockContext.getString(any()) } returns "Test String"
+
+        every { mockAlarmManager.setAlarmClock(any(), any()) } just Runs
+
+        mockkStatic(Toast::class)
+        every { Toast.makeText(any(), any<String>(), any()) } returns mockk(relaxed = true)
+
+        myAlarmManager = MyAlarmManager(
+            mockContext, mockAlarmManager, mockTimeProvider, testDispatcher, testDispatcher
+        )
+
+        alarmService = AlarmService(mockAlarmDao, mockSettingsDao, testDispatcher, myAlarmManager,true)
+        alarmViewModel = AlarmViewModel(alarmService, mockPreferences, myAlarmManager, testDispatcher)
     }
 
     @After
@@ -68,22 +88,23 @@ class AlarmViewModelTest {
         val alarm = Alarm(50, 10, 0, "Test Alarm", true)
         coEvery { mockAlarmDao.countAlarmsWithTime(alarm.timeHours, alarm.timeMinutes) } returns 0
         coEvery { mockAlarmDao.addAlarm(any()) } just Runs
-        coEvery { mockAlarmDao.getAlarms() } returns mutableListOf()
+        coEvery { mockAlarmDao.getAlarms() } returns mutableListOf(AlarmDbEntity.fromUserInput(alarm))
 
         val mockSettings = mockk<Settings>()
         coEvery { mockSettingsDao.getSettings().toSettings() } returns mockSettings
 
-        var callbackResult: Boolean = false
+        var callbackResult = 0L
 
         // Act
-        alarmViewModel.addAlarm(alarm, mock(), true) { result ->
+        alarmViewModel.addAlarm(alarm, mockPendingIntent) { result ->
             callbackResult = result
         }
 
         // Assert
-        assertTrue(callbackResult)
+        assertNotEquals(0L, callbackResult)
         coVerify { mockAlarmDao.countAlarmsWithTime(alarm.timeHours, alarm.timeMinutes) } // Проверка, что метод countAlarmsWithTime был вызван
         coVerify { mockAlarmDao.addAlarm(any()) } // Проверка, что добавление будильника произошло
+        coVerify { mockAlarmManager.setAlarmClock(any(), mockPendingIntent) } // Проверка, что будильник завелся
     }
 
     @Test
@@ -91,7 +112,7 @@ class AlarmViewModelTest {
         // Arrange
         val alarm = Alarm(1, 10, 0, "Test Alarm", false)
         coEvery { mockAlarmDao.countAlarmsWithTime(alarm.timeHours, alarm.timeMinutes) } returns 0
-        coEvery { mockAlarmDao.addAlarm(any()) } just Runs
+        coEvery { mockAlarmDao.addAlarm(AlarmDbEntity.fromUserInput(alarm)) } just Runs
         coEvery { mockAlarmDao.updateEnabled(alarm.id, true) } just Runs
         coEvery { mockAlarmDao.getAlarms() } returns mutableListOf()
 
@@ -101,10 +122,11 @@ class AlarmViewModelTest {
         mockAlarmDao.addAlarm(AlarmDbEntity.fromUserInput(alarm))
 
         // Act
-        alarmViewModel.updateEnabledAlarm(alarm, true, mock(), true) {}
+        alarmViewModel.updateEnabledAlarm(alarm, true, mockPendingIntent) {}
 
         // Assert
         coVerify { mockAlarmDao.updateEnabled(alarm.id, true) }
+        coVerify { mockAlarmManager.setAlarmClock(any(), mockPendingIntent) } // Проверка, что будильник завелся
     }
 
     @Test
@@ -167,7 +189,7 @@ class AlarmViewModelTest {
         var callbackResult: Boolean = false
 
         // Act
-        alarmViewModel.updateAlarm(alarmNew, mock(), true) { result ->
+        alarmViewModel.updateAlarm(alarmNew) { result ->
             callbackResult = result
         }
 

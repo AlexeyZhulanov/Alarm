@@ -117,7 +117,7 @@ class MainActivity : AppCompatActivity() {
             }
             R.id.off_alarms -> {
                 uiScope.launch {
-                    alarmsService.offAlarms(applicationContext)
+                    alarmsService.offAlarms()
                     (supportFragmentManager.findFragmentByTag(getString(R.string.alarm_fragment_tag)) as? AlarmFragment)?.fillAndUpdateBar()
                 }
                 true

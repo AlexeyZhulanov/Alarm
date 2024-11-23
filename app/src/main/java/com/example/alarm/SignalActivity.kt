@@ -2,17 +2,20 @@ package com.example.alarm
 
 import android.content.Context
 import android.os.Bundle
+import android.util.Log
 import android.view.KeyEvent
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.IntentCompat
 import androidx.lifecycle.lifecycleScope
 import com.example.alarm.databinding.ActivitySignalBinding
+import com.example.alarm.model.MyAlarmManager
 import com.example.alarm.model.Settings
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class SignalActivity : AppCompatActivity() {
@@ -20,6 +23,9 @@ class SignalActivity : AppCompatActivity() {
     private lateinit var binding: ActivitySignalBinding
     private var isHomePressed = false
     private var homePressResetJob: Job? = null
+
+    @Inject
+    lateinit var myAlarmManager: MyAlarmManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val preferences = getSharedPreferences(APP_PREFERENCES, Context.MODE_PRIVATE)
@@ -52,7 +58,7 @@ class SignalActivity : AppCompatActivity() {
         if (savedInstanceState == null) {
             supportFragmentManager
                 .beginTransaction()
-                .replace(R.id.fragmentContainer2, SignalFragment(alarmName, alarmId, settings))
+                .replace(R.id.fragmentContainer2, SignalFragment(alarmName, alarmId, settings, myAlarmManager))
                 .commit()
         }
     }
@@ -76,17 +82,19 @@ class SignalActivity : AppCompatActivity() {
 
     override fun onPause() {
         super.onPause()
-        isHomePressed = true
-        homePressResetJob?.cancel()
-        homePressResetJob = lifecycleScope.launch {
-            delay(1000)
-            isHomePressed = false
+        if(!isFinishing) {
+            isHomePressed = true
+            homePressResetJob?.cancel()
+            homePressResetJob = lifecycleScope.launch {
+                delay(1000)
+                isHomePressed = false
+            }
         }
     }
 
     override fun onStop() {
         super.onStop()
-        if (isHomePressed) {
+        if (isHomePressed && !isFinishing) {
             (supportFragmentManager.findFragmentById(R.id.fragmentContainer2) as SignalFragment).dropAndRepeatFragment()
         }
     }

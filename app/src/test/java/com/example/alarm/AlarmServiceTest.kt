@@ -6,6 +6,7 @@ import com.example.alarm.room.AlarmDao
 import com.example.alarm.room.AlarmDbEntity
 import com.example.alarm.room.SettingsDao
 import com.example.alarm.room.SettingsDbEntity
+import io.mockk.mockk
 import junit.framework.TestCase.assertEquals
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -14,6 +15,7 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
+import org.junit.Assert.assertNotEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -29,11 +31,12 @@ class AlarmServiceTest {
     private val mockAlarmDao: AlarmDao = mock()
     private val mockSettingsDao: SettingsDao = mock()
     private val testDispatcher = UnconfinedTestDispatcher()
+    private val mockMyAlarmManager: MyAlarmManager = mockk()
 
     @Before
     fun setup() {
         Dispatchers.setMain(testDispatcher)
-        alarmService = AlarmService(mockAlarmDao, mockSettingsDao, testDispatcher)
+        alarmService = AlarmService(mockAlarmDao, mockSettingsDao, testDispatcher, mockMyAlarmManager)
     }
 
     @After
@@ -56,22 +59,26 @@ class AlarmServiceTest {
     }
 
     @Test
-    fun `test addAlarm returns true for new alarm`() = runTest {
+    fun `test addAlarm returns alarm id for new alarm`() = runTest {
         val alarm = Alarm(60, 7, 15, "New Alarm", false)
         `when`(mockAlarmDao.countAlarmsWithTime(7, 15)).thenReturn(0)
+        `when`(mockAlarmDao.getAlarms()).thenReturn(mutableListOf(AlarmDbEntity.fromUserInput(alarm)))
 
         val result = alarmService.addAlarm(alarm)
 
-        assertEquals(true, result)
+        assertEquals(60L, result)
         verify(mockAlarmDao).addAlarm(AlarmDbEntity.fromUserInput(alarm))
     }
 
     @Test
-    fun `test addAlarm returns false for duplicate`() = runTest {
+    fun `test addAlarm returns 0L(false) for duplicate`() = runTest {
         val alarm = Alarm(60, 7, 15, "New Alarm", false)
         `when`(mockAlarmDao.countAlarmsWithTime(7, 15)).thenReturn(1)
+        `when`(mockAlarmDao.getAlarms()).thenReturn(mutableListOf(AlarmDbEntity.fromUserInput(alarm)))
+
         val result = alarmService.addAlarm(alarm)
-        assertEquals(false, result)
+
+        assertEquals(0L, result)
         verify(mockAlarmDao, never()).addAlarm(AlarmDbEntity.fromUserInput(alarm))
     }
 

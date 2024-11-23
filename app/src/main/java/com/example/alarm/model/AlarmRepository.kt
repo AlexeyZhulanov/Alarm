@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.Flow
 interface AlarmRepository {
     suspend fun getAlarms(): MutableList<Alarm>
 
-    suspend fun addAlarm(alarm: Alarm) : Boolean
+    suspend fun addAlarm(alarm: Alarm) : Long
 
     suspend fun updateAlarm(alarm: Alarm) : Boolean
 

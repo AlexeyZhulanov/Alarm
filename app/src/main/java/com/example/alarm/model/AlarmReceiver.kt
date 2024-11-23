@@ -20,13 +20,14 @@ import androidx.core.content.IntentCompat
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.workDataOf
+import com.example.alarm.App
 import com.example.alarm.R
 import com.example.alarm.SignalActivity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-
+import javax.inject.Inject
 
 class AlarmReceiver : BroadcastReceiver() {
 
@@ -36,6 +37,9 @@ class AlarmReceiver : BroadcastReceiver() {
     private var originalMusicVolume: Int = 0
     private val job = Job()
     private val uiScope = CoroutineScope(Dispatchers.Main + job)
+
+    @Inject
+    lateinit var myAlarmManager: MyAlarmManager
 
     @SuppressLint("Wakelock")
     override fun onReceive(context: Context, intent: Intent) {
@@ -81,7 +85,7 @@ class AlarmReceiver : BroadcastReceiver() {
         notificationManager.createNotificationChannel(channel)
 
         val updateWorkRequest = OneTimeWorkRequestBuilder<AlarmWorker>()
-            .setInputData(workDataOf("alarmId" to id, "enabled" to 0))
+            .setInputData(workDataOf("alarmId" to id))
             .build()
 
         WorkManager.getInstance(context).enqueue(updateWorkRequest)
@@ -183,7 +187,6 @@ class AlarmReceiver : BroadcastReceiver() {
 
     private val turnOffReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
-            val cont = context
             mediaPlayer.stop()
             mediaPlayer.release() // Clear resources mediaPlayer
             audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, originalMusicVolume, 0) // Restore original music volume
@@ -192,9 +195,9 @@ class AlarmReceiver : BroadcastReceiver() {
                 val alarmId = intent.getLongExtra("alarmId", 0)
                 val notificationId = intent.getIntExtra("notificationId", -1)
                 val alarmPlug = Alarm(alarmId)
-                MyAlarmManager(cont, alarmPlug, Settings(0)).endProcess()
+                myAlarmManager.endProcess(alarmPlug)
                 val notificationManager =
-                    cont.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+                    context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
                 notificationManager.cancel(notificationId)
             }
         }

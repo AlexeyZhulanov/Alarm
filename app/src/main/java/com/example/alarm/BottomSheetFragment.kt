@@ -63,8 +63,8 @@ class BottomSheetFragment(
             enabled = true
         )
         lifecycleScope.launch {
-            alarmViewModel.addAlarm(alarm, requireContext()) { success ->
-                if(success) {
+            alarmViewModel.addAlarm(alarm) { idValue ->
+                if(idValue != 0L) {
                     bottomSheetListener.onAddAlarm(alarm)
                 } else {
                     Toast.makeText(context, getString(R.string.error_is_exist), Toast.LENGTH_SHORT).show()
@@ -82,7 +82,7 @@ class BottomSheetFragment(
             enabled = oldAlarm.enabled
         )
         lifecycleScope.launch {
-            alarmViewModel.updateAlarm(alarmNew, requireContext()) { success ->
+            alarmViewModel.updateAlarm(alarmNew) { success ->
                 if(success) {
                     bottomSheetListener.onChangeAlarm(oldAlarm, alarmNew)
                 } else {

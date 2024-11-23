@@ -58,7 +58,7 @@ class AlarmFragment : Fragment() {
                         changeAlarmTime(alarm, true)
                         binding.barTextView.text = updateBar()
                     }
-                    alarmViewModel.updateEnabledAlarm(alarm, bool, requireContext()) { //callback
+                    alarmViewModel.updateEnabledAlarm(alarm, bool) { //callback
                         adapter.notifyItemChanged(index)
                     }
                 }

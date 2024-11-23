@@ -6,6 +6,7 @@ import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.example.alarm.di.IoDispatcher
+import com.example.alarm.di.MainDispatcher
 import com.example.alarm.room.AlarmDao
 import com.example.alarm.room.AlarmDbEntity
 import com.example.alarm.room.SettingsDao
@@ -22,13 +23,13 @@ typealias AlarmsListener = (alarms: List<Alarm>) -> Unit
 class AlarmService(
     private val alarmDao: AlarmDao,
     private val settingsDao: SettingsDao,
-    private val dispatcher: CoroutineDispatcher,
-    private val skipInit: Boolean = false,
-    private val skipManager: Boolean = false
+    private val ioDispatcher: CoroutineDispatcher,
+    private val myAlarmManager: MyAlarmManager,
+    private val skipInit: Boolean = false
 ): AlarmRepository {
     private var alarms = mutableListOf<Alarm>()
     private val listeners = mutableSetOf<AlarmsListener>()
-    private val uiScope = CoroutineScope(dispatcher)
+    private val uiScope = CoroutineScope(ioDispatcher)
     private var settings = Settings(0)
 
     private val _initCompleted = MutableLiveData<Boolean>()
@@ -43,7 +44,7 @@ class AlarmService(
         }
     }
 
-    override suspend fun getAlarms(): MutableList<Alarm> = withContext(dispatcher) {
+    override suspend fun getAlarms(): MutableList<Alarm> = withContext(ioDispatcher) {
         alarms.clear()
         val dbAlarms = alarmDao.getAlarms()
         dbAlarms?.forEach {
@@ -52,7 +53,7 @@ class AlarmService(
         return@withContext alarms
     }
 
-    override suspend fun addAlarm(alarm: Alarm) : Boolean = withContext(dispatcher) {
+    override suspend fun addAlarm(alarm: Alarm) : Long = withContext(ioDispatcher) {
         val existingAlarmsCount = alarmDao.countAlarmsWithTime(alarm.timeHours, alarm.timeMinutes)
         if(existingAlarmsCount == 0) {
             try {
@@ -60,16 +61,18 @@ class AlarmService(
             } catch (e: SQLiteConstraintException) {
                 Log.e("AlarmFragment", "Attempt to insert duplicate alarm", e)
             }
+            val existingIds = alarms.map { it.id }.toSet()
             alarms = getAlarms()
+            val result = alarms.firstOrNull { it.id !in existingIds }?.id ?: 0L
             notifyChanges()
-            return@withContext true
+            return@withContext result
         }
         else {
-            return@withContext false
+            return@withContext 0L
         }
     }
 
-    override suspend fun updateAlarm(alarm: Alarm) : Boolean = withContext(dispatcher) {
+    override suspend fun updateAlarm(alarm: Alarm) : Boolean = withContext(ioDispatcher) {
         val existingAlarmsCount = alarmDao.countAlarmsWithTimeAndName(alarm.timeHours, alarm.timeMinutes, alarm.name)
         if(existingAlarmsCount == 0) {
             try {
@@ -86,37 +89,37 @@ class AlarmService(
         }
     }
 
-    override suspend fun updateEnabled(id: Long, enabled: Boolean) = withContext(dispatcher) {
+    override suspend fun updateEnabled(id: Long, enabled: Boolean) = withContext(ioDispatcher) {
         alarmDao.updateEnabled(id, enabled)
         alarms = getAlarms()
     }
 
-    override suspend fun deleteAlarms(list: List<Alarm>, context: Context?) = withContext(dispatcher) {
+    override suspend fun deleteAlarms(list: List<Alarm>, context: Context?) = withContext(ioDispatcher) {
         for(l in list) {
-            if(l.enabled && !skipManager) MyAlarmManager(context, l, Settings(0)).endProcess()
+            if(l.enabled) myAlarmManager.endProcess(l)
             alarmDao.deleteAlarm(AlarmDbEntity.fromUserInput(l))
         }
         alarms = getAlarms()
         notifyChanges()
     }
 
-    suspend fun offAlarms(context: Context) = withContext(dispatcher) {
+    suspend fun offAlarms() = withContext(ioDispatcher) {
         for(alarm in alarms) {
             if (alarm.enabled) {
                 alarmDao.updateEnabled(alarm.id, false)
-                if(!skipManager) MyAlarmManager(context, alarm, Settings(0)).endProcess()
+                myAlarmManager.endProcess(alarm)
             }
         }
         alarms = getAlarms()
         notifyChanges()
     }
 
-    suspend fun getSettings(): Settings = withContext(dispatcher) {
+    suspend fun getSettings(): Settings = withContext(ioDispatcher) {
         settings = settingsDao.getSettings().toSettings()
         return@withContext settings
     }
 
-    suspend fun updateSettings(settings: Settings) = withContext(dispatcher) {
+    suspend fun updateSettings(settings: Settings) = withContext(ioDispatcher) {
         settingsDao.updateSettings(SettingsDbEntity.fromUserInput(settings))
     }
 

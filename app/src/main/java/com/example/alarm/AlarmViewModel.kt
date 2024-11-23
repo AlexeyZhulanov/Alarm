@@ -1,13 +1,13 @@
 package com.example.alarm
 
+import android.app.PendingIntent
 import android.content.Context
 import android.content.SharedPreferences
-import android.icu.util.Calendar
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.alarm.di.IoDispatcher
 import com.example.alarm.di.MainDispatcher
 import com.example.alarm.model.Alarm
 import com.example.alarm.model.AlarmService
@@ -23,6 +23,7 @@ import javax.inject.Inject
 class AlarmViewModel @Inject constructor(
     private val alarmsService: AlarmService,
     private val preferences: SharedPreferences,
+    private val myAlarmManager: MyAlarmManager,
     @MainDispatcher private val dispatcher: CoroutineDispatcher
 ) : ViewModel() {
 
@@ -49,38 +50,39 @@ class AlarmViewModel @Inject constructor(
         alarmsService.removeListener(alarmsListener)
     }
 
-    fun updateEnabledAlarm(alarm: Alarm, enabled: Boolean, context: Context, skipManager: Boolean = false, callback: () -> Unit) {
+    fun updateEnabledAlarm(alarm: Alarm, enabled: Boolean, intent: PendingIntent? = null, callback: () -> Unit) {
         viewModelScope.launch(dispatcher) {
             if (!alarm.enabled) {
                 val settings = alarmsService.getSettings()
-                if(!skipManager) MyAlarmManager(context, alarm, settings).startProcess()
+                myAlarmManager.startProcess(alarm, settings, intent)
             }
             else {
-                if(!skipManager) MyAlarmManager(context, alarm, Settings(0)).endProcess()
+                myAlarmManager.endProcess(alarm, null, intent)
             }
             alarmsService.updateEnabled(alarm.id, enabled)
             callback()
         }
     }
 
-    fun addAlarm(alarm: Alarm, context: Context, skipManager: Boolean = false, callback: (Boolean) -> Unit) {
+    fun addAlarm(alarm: Alarm, intent: PendingIntent? = null, callback: (Long) -> Unit) {
         viewModelScope.launch(dispatcher) {
             val result = alarmsService.addAlarm(alarm)
-            if (result) {
+            if (result != 0L) {
                 val settings = alarmsService.getSettings()
-                if(!skipManager) MyAlarmManager(context, alarm, settings).startProcess()
+                val newAlarm = Alarm(result, alarm.timeHours, alarm.timeMinutes, alarm.name, alarm.enabled)
+                myAlarmManager.startProcess(newAlarm, settings, intent)
             }
             callback(result)
         }
     }
 
-    fun updateAlarm(alarmNew: Alarm, context: Context, skipManager: Boolean = false, callback: (Boolean) -> Unit) {
+    fun updateAlarm(alarmNew: Alarm, callback: (Boolean) -> Unit) {
         viewModelScope.launch(dispatcher) {
             val result = alarmsService.updateAlarm(alarmNew)
             if(result) {
                 if(alarmNew.enabled) {
                     val settings = alarmsService.getSettings()
-                    if(!skipManager) MyAlarmManager(context, alarmNew, settings).restartProcess()
+                    myAlarmManager.restartProcess(alarmNew, settings)
                 }
             }
             callback(result)
