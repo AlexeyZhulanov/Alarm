@@ -1,8 +1,6 @@
 package com.example.alarm
 
-import android.content.Context
 import android.os.Bundle
-import android.util.Log
 import android.view.KeyEvent
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
@@ -28,7 +26,7 @@ class SignalActivity : AppCompatActivity() {
     lateinit var myAlarmManager: MyAlarmManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        val preferences = getSharedPreferences(APP_PREFERENCES, Context.MODE_PRIVATE)
+        val preferences = getSharedPreferences(APP_PREFERENCES, MODE_PRIVATE)
         val themeNumber = preferences.getInt(PREF_THEME, 0)
         when(themeNumber) {
             0 -> setTheme(R.style.Theme_Alarm)

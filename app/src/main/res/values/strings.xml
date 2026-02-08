@@ -58,6 +58,7 @@
     <string name="alarm">Будильник</string>
     <string name="press_to_off">Нажмите, чтобы отключить будильник</string>
     <string name="turn_off">Turn Off</string>
+    <string name="repeat">Repeat</string>
     <string name="change_alarm">Изменить будильник</string>
     <string name="alarm_fragment_tag">ALARM_FRAGMENT_TAG</string>
     <string name="need_permissions">Необходимы разрешения</string>

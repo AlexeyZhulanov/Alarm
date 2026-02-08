@@ -37,13 +37,17 @@
 
         <receiver
             android:name=".model.AlarmReceiver"
-            android:exported="true"
-            android:enabled="true"
-            android:permission="android.permission.WAKE_LOCK">
+            android:exported="false"
+            android:enabled="true">
             <intent-filter>
                 <action android:name="com.example.alarm.ALARM_TRIGGERED" />
             </intent-filter>
         </receiver>
+
+        <service
+            android:name=".model.AlarmForegroundService"
+            android:exported="false"
+            android:foregroundServiceType="mediaPlayback" />
 
         <activity
             android:name=".MainActivity"
