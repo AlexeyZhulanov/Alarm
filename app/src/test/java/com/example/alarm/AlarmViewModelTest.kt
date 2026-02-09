@@ -70,7 +70,7 @@ class AlarmViewModelTest {
         every { Toast.makeText(any(), any<String>(), any()) } returns mockk(relaxed = true)
 
         myAlarmManager = MyAlarmManager(
-            mockContext, mockAlarmManager, mockTimeProvider, testDispatcher, testDispatcher
+            mockContext, mockAlarmManager, mockTimeProvider, testDispatcher
         )
 
         alarmService = AlarmService(mockAlarmDao, mockSettingsDao, testDispatcher, myAlarmManager,true)
@@ -96,9 +96,9 @@ class AlarmViewModelTest {
         var callbackResult = 0L
 
         // Act
-        alarmViewModel.addAlarm(alarm, mockPendingIntent) { result ->
+        alarmViewModel.addAlarm(alarm, callback = { result ->
             callbackResult = result
-        }
+        }, toastCallback = {})
 
         // Assert
         assertNotEquals(0L, callbackResult)
@@ -122,7 +122,7 @@ class AlarmViewModelTest {
         mockAlarmDao.addAlarm(AlarmDbEntity.fromUserInput(alarm))
 
         // Act
-        alarmViewModel.updateEnabledAlarm(alarm, true, mockPendingIntent) {}
+        alarmViewModel.updateEnabledAlarm(alarm, true, {}, {})
 
         // Assert
         coVerify { mockAlarmDao.updateEnabled(alarm.id, true) }
@@ -186,7 +186,7 @@ class AlarmViewModelTest {
 
         mockAlarmDao.addAlarm(AlarmDbEntity.fromUserInput(alarm))
 
-        var callbackResult: Boolean = false
+        var callbackResult = false
 
         // Act
         alarmViewModel.updateAlarm(alarmNew) { result ->

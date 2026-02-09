@@ -43,7 +43,7 @@ class AlarmUiTest {
             try {
                 uiDevice.wait(Until.hasObject(By.text(context.getString(R.string.access))), 5_000)
                 uiDevice.findObject(By.text(context.getString(R.string.access))).click()
-            } catch (e: UiObjectNotFoundException) {
+            } catch (_: UiObjectNotFoundException) {
                 // Permission dialog not shown, continue with the test
             }
         }
@@ -52,7 +52,7 @@ class AlarmUiTest {
             try {
                 uiDevice.wait(Until.hasObject(By.text(context.getString(R.string.cancel_caps))), 5_000)
                 uiDevice.findObject(By.text(context.getString(R.string.cancel_caps))).click()
-            } catch (e: UiObjectNotFoundException) {
+            } catch (_: UiObjectNotFoundException) {
                 // If the dialog or required options are not found, continue with the test
             }
         }

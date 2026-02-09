@@ -41,7 +41,7 @@ class AlarmAdapterUiTest {
             try {
                 uiDevice.wait(Until.hasObject(By.text(context.getString(R.string.access))), 5_000)
                 uiDevice.findObject(By.text(context.getString(R.string.access))).click()
-            } catch (e: UiObjectNotFoundException) {
+            } catch (_: UiObjectNotFoundException) {
                 // Permission dialog not shown, continue with the test
             }
         }
@@ -51,7 +51,7 @@ class AlarmAdapterUiTest {
             try {
                 uiDevice.wait(Until.hasObject(By.text(context.getString(R.string.cancel_caps))), 5_000)
                 uiDevice.findObject(By.text(context.getString(R.string.cancel_caps))).click()
-                } catch (e: UiObjectNotFoundException) {
+                } catch (_: UiObjectNotFoundException) {
                 // If the dialog or required options are not found, continue with the test
             }
         }
@@ -102,7 +102,7 @@ class AlarmAdapterUiTest {
     private fun clickChildViewWithId(id: Int): ViewAction {
         return object : ViewAction {
             override fun getConstraints(): org.hamcrest.Matcher<View> {
-                return isAssignableFrom(android.view.View::class.java)
+                return isAssignableFrom(View::class.java)
             }
 
             override fun getDescription(): String {
