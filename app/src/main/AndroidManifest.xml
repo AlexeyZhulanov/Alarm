@@ -5,11 +5,12 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
-    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.VIBRATE"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
 
     <application
         android:allowBackup="true"
@@ -25,14 +26,10 @@
         <activity
             android:name=".SignalActivity"
             android:exported="true"
-            android:launchMode="singleTask"
-            android:taskAffinity=""
-            android:clearTaskOnLaunch="true"
             android:showOnLockScreen="true"
             android:turnScreenOn="true"
-            android:excludeFromRecents="true"
             android:showWhenLocked="true"
-            android:allowEmbedded="true">
+            android:excludeFromRecents="true">
         </activity>
 
         <receiver
@@ -41,6 +38,15 @@
             android:enabled="true">
             <intent-filter>
                 <action android:name="com.example.alarm.ALARM_TRIGGERED" />
+            </intent-filter>
+        </receiver>
+
+        <receiver
+            android:name=".model.BootCompletedReceiver"
+            android:enabled="true"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
             </intent-filter>
         </receiver>
 
