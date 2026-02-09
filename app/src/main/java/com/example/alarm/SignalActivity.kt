@@ -2,18 +2,18 @@ package com.example.alarm
 
 import android.os.Bundle
 import android.view.KeyEvent
-import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.IntentCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
 import com.example.alarm.databinding.ActivitySignalBinding
-import com.example.alarm.model.MyAlarmManager
 import com.example.alarm.model.Settings
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class SignalActivity : AppCompatActivity() {
@@ -22,8 +22,6 @@ class SignalActivity : AppCompatActivity() {
     private var isHomePressed = false
     private var homePressResetJob: Job? = null
 
-    @Inject
-    lateinit var myAlarmManager: MyAlarmManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val preferences = getSharedPreferences(APP_PREFERENCES, MODE_PRIVATE)
@@ -40,30 +38,36 @@ class SignalActivity : AppCompatActivity() {
             8 -> setTheme(R.style.Theme8)
             else -> setTheme(R.style.Theme_Alarm)
         }
+        WindowCompat.setDecorFitsSystemWindows(window, false)
         super.onCreate(savedInstanceState)
         binding = ActivitySignalBinding.inflate(layoutInflater).also { setContentView(it.root) }
         setContentView(binding.root)
-        @Suppress("DEPRECATION")
-        window.addFlags(
-            WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON or
-                    WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD or
-                    WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED or
-                    WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
-        )
+
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, insets ->
+            val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            v.setPadding(
+                bars.left,
+                bars.top,
+                bars.right,
+                bars.bottom
+            )
+            insets
+        }
+
         val alarmName = intent.getStringExtra("alarmName") ?: ""
         val alarmId = intent.getLongExtra("alarmId", 0)
         val settings = IntentCompat.getParcelableExtra(intent, "settings", Settings::class.java) ?: Settings(0)
         if (savedInstanceState == null) {
             supportFragmentManager
                 .beginTransaction()
-                .replace(R.id.fragmentContainer2, SignalFragment(alarmName, alarmId, settings, myAlarmManager))
+                .replace(R.id.fragmentContainer2, SignalFragment.newInstance(alarmName, alarmId, settings))
                 .commit()
         }
     }
     override fun onKeyUp(keyCode: Int, event: KeyEvent?): Boolean {
         if (supportFragmentManager.findFragmentById(R.id.fragmentContainer2) is SignalFragment) {
             if (keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
-                (supportFragmentManager.findFragmentById(R.id.fragmentContainer2) as SignalFragment).dropAndRepeatFragment()
+                (supportFragmentManager.findFragmentById(R.id.fragmentContainer2) as SignalFragment).snoozeFromFragment()
             }
         }
         return true
@@ -72,7 +76,7 @@ class SignalActivity : AppCompatActivity() {
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
         if (supportFragmentManager.findFragmentById(R.id.fragmentContainer2) is SignalFragment) {
             if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
-                (supportFragmentManager.findFragmentById(R.id.fragmentContainer2) as SignalFragment).dropAndRepeatFragment()
+                (supportFragmentManager.findFragmentById(R.id.fragmentContainer2) as SignalFragment).snoozeFromFragment()
             }
         }
         return true
@@ -93,7 +97,7 @@ class SignalActivity : AppCompatActivity() {
     override fun onStop() {
         super.onStop()
         if (isHomePressed && !isFinishing) {
-            (supportFragmentManager.findFragmentById(R.id.fragmentContainer2) as SignalFragment).dropAndRepeatFragment()
+            (supportFragmentManager.findFragmentById(R.id.fragmentContainer2) as SignalFragment).snoozeFromFragment()
         }
     }
 }

@@ -5,8 +5,6 @@ import android.database.sqlite.SQLiteConstraintException
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import com.example.alarm.di.IoDispatcher
-import com.example.alarm.di.MainDispatcher
 import com.example.alarm.room.AlarmDao
 import com.example.alarm.room.AlarmDbEntity
 import com.example.alarm.room.SettingsDao
@@ -14,7 +12,6 @@ import com.example.alarm.room.SettingsDbEntity
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -25,7 +22,7 @@ class AlarmService(
     private val settingsDao: SettingsDao,
     private val ioDispatcher: CoroutineDispatcher,
     private val myAlarmManager: MyAlarmManager,
-    private val skipInit: Boolean = false
+    skipInit: Boolean = false
 ): AlarmRepository {
     private var alarms = mutableListOf<Alarm>()
     private val listeners = mutableSetOf<AlarmsListener>()

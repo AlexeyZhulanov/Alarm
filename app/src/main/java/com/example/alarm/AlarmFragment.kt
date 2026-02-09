@@ -58,9 +58,11 @@ class AlarmFragment : Fragment() {
                         changeAlarmTime(alarm, true)
                         binding.barTextView.text = updateBar()
                     }
-                    alarmViewModel.updateEnabledAlarm(alarm, bool) { //callback
+                    alarmViewModel.updateEnabledAlarm(alarm, bool, callback = {
                         adapter.notifyItemChanged(index)
-                    }
+                    }, toastCallback = {
+                        Toast.makeText(requireContext(), it, Toast.LENGTH_SHORT).show()
+                    })
                 }
             }
 
@@ -213,7 +215,7 @@ class AlarmFragment : Fragment() {
     }
 
     private fun updateBar(): String {
-        var txt: String = ""
+        var txt = ""
         if (millisToAlarm.isEmpty()) txt += getString(R.string.all_signals_off)
         else {
             val calendar = Calendar.getInstance(ULocale.ROOT)

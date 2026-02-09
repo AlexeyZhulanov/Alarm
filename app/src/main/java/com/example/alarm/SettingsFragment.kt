@@ -210,7 +210,7 @@ class SettingsFragment : Fragment() {
             MenuItemData("9.", R.drawable.wallpaper9),
             MenuItemData("10.", R.drawable.wallpaper10)
         )
-        var temp = ""
+        var temp: String
         val adapter = PopupMenuWallpaperAdapter(menuItems) { menuItem ->
             temp = when(menuItem.title) {
                 getString(R.string.classic) -> ""

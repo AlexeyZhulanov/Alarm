@@ -116,9 +116,9 @@ class AlarmsAdapter(
                 var tm2 = ""
                 if (alarm.timeMinutes == 0) tm = "0"
                 if (alarm.timeMinutes in 1..9) tm2 = "0"
-                val txt: String = "${alarm.timeHours}:${tm2}${alarm.timeMinutes}${tm}"
+                val txt = "${alarm.timeHours}:${tm2}${alarm.timeMinutes}${tm}"
                 timeTextView.text = txt
-                var txt2: String = ""
+                var txt2 = ""
                 txt2 += if (alarm.name != "default")
                     "<font color='#FF00FF'>${alarm.name}</font>"
                 else "раз в $interval минут"

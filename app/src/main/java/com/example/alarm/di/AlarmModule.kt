@@ -72,10 +72,9 @@ object AlarmModule {
         context: Context,
         alarmManager: AlarmManager,
         timeProvider: TimeProvider,
-        @MainDispatcher mainDispatcher: CoroutineDispatcher,
         @DefaultDispatcher defaultDispatcher: CoroutineDispatcher
     ): MyAlarmManager {
-        return MyAlarmManager(context, alarmManager, timeProvider, mainDispatcher, defaultDispatcher)
+        return MyAlarmManager(context, alarmManager, timeProvider, defaultDispatcher)
     }
 
     @Provides

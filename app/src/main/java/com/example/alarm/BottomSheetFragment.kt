@@ -63,13 +63,15 @@ class BottomSheetFragment(
             enabled = true
         )
         lifecycleScope.launch {
-            alarmViewModel.addAlarm(alarm) { idValue ->
+            alarmViewModel.addAlarm(alarm, callback = { idValue ->
                 if(idValue != 0L) {
                     bottomSheetListener.onAddAlarm(alarm)
                 } else {
                     Toast.makeText(context, getString(R.string.error_is_exist), Toast.LENGTH_SHORT).show()
                 }
-            }
+            }, toastCallback = {
+                Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+            })
             dismiss()
         }
     }

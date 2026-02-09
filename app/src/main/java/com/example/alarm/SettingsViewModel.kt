@@ -10,6 +10,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
+import androidx.core.content.edit
 
 const val PREF_THEME = "PREF_THEME"
 const val APP_PREFERENCES = "APP_PREFERENCES"
@@ -28,15 +29,15 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun editPreferencesWallpaper(wallpaper: String) {
-        preferences.edit().putString(PREF_WALLPAPER, wallpaper).apply()
+        preferences.edit { putString(PREF_WALLPAPER, wallpaper) }
     }
 
     fun editPreferencesTheme(theme: Int) {
-        preferences.edit().putInt(PREF_THEME, theme).apply()
+        preferences.edit { putInt(PREF_THEME, theme) }
     }
 
     fun editPreferencesInterval(interval: Int) {
-        preferences.edit().putInt(PREF_INTERVAL, interval).apply()
+        preferences.edit { putInt(PREF_INTERVAL, interval) }
     }
 
     fun registerPreferences() {

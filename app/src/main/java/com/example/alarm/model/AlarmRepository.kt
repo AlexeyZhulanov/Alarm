@@ -1,7 +1,6 @@
 package com.example.alarm.model
 
 import android.content.Context
-import kotlinx.coroutines.flow.Flow
 
 interface AlarmRepository {
     suspend fun getAlarms(): MutableList<Alarm>

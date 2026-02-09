@@ -1,9 +1,7 @@
 package com.example.alarm
 
-import android.app.PendingIntent
 import android.content.Context
 import android.content.SharedPreferences
-import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -13,7 +11,6 @@ import com.example.alarm.model.Alarm
 import com.example.alarm.model.AlarmService
 import com.example.alarm.model.AlarmsListener
 import com.example.alarm.model.MyAlarmManager
-import com.example.alarm.model.Settings
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.launch
@@ -24,7 +21,7 @@ class AlarmViewModel @Inject constructor(
     private val alarmsService: AlarmService,
     private val preferences: SharedPreferences,
     private val myAlarmManager: MyAlarmManager,
-    @MainDispatcher private val dispatcher: CoroutineDispatcher
+    @param:MainDispatcher private val dispatcher: CoroutineDispatcher
 ) : ViewModel() {
 
     private val _alarms = MutableLiveData<List<Alarm>>()
@@ -50,27 +47,29 @@ class AlarmViewModel @Inject constructor(
         alarmsService.removeListener(alarmsListener)
     }
 
-    fun updateEnabledAlarm(alarm: Alarm, enabled: Boolean, intent: PendingIntent? = null, callback: () -> Unit) {
+    fun updateEnabledAlarm(alarm: Alarm, enabled: Boolean, callback: () -> Unit, toastCallback: (String) -> Unit) {
         viewModelScope.launch(dispatcher) {
             if (!alarm.enabled) {
                 val settings = alarmsService.getSettings()
-                myAlarmManager.startProcess(alarm, settings, intent)
+                val message = myAlarmManager.startProcess(alarm, settings)
+                toastCallback(message)
             }
             else {
-                myAlarmManager.endProcess(alarm, null, intent)
+                myAlarmManager.endProcess(alarm)
             }
             alarmsService.updateEnabled(alarm.id, enabled)
             callback()
         }
     }
 
-    fun addAlarm(alarm: Alarm, intent: PendingIntent? = null, callback: (Long) -> Unit) {
+    fun addAlarm(alarm: Alarm, callback: (Long) -> Unit, toastCallback: (String) -> Unit) {
         viewModelScope.launch(dispatcher) {
             val result = alarmsService.addAlarm(alarm)
             if (result != 0L) {
                 val settings = alarmsService.getSettings()
                 val newAlarm = Alarm(result, alarm.timeHours, alarm.timeMinutes, alarm.name, alarm.enabled)
-                myAlarmManager.startProcess(newAlarm, settings, intent)
+                val message = myAlarmManager.startProcess(newAlarm, settings)
+                toastCallback(message)
             }
             callback(result)
         }

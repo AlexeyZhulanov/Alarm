@@ -39,15 +39,24 @@ class AlarmForegroundService : Service() {
     private lateinit var focusRequest: AudioFocusRequest
     private var originalMusicVolume = 0
     private var vibrator: Vibrator? = null
+    private var started = false
 
     @Inject
     lateinit var myAlarmManager: MyAlarmManager
+
+    @Inject
+    lateinit var alarmService: AlarmService
 
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         when (intent?.action) {
             ACTION_STOP -> {
+                val alarmId = intent.getLongExtra("alarmId", 0L)
+
+                CoroutineScope(Dispatchers.IO).launch {
+                    alarmService.updateEnabled(alarmId, false)
+                }
                 stopAlarm()
                 stopSelf()
                 return START_NOT_STICKY
@@ -72,10 +81,11 @@ class AlarmForegroundService : Service() {
             NOTIFICATION_ID,
             buildNotification(alarmId, alarmName, settings)
         )
-
-        startSound(settings)
-        if (settings.vibration) startVibration()
-
+        if(!started) {
+            started = true
+            startSound(settings)
+            if (settings.vibration) startVibration()
+        }
         return START_NOT_STICKY
     }
 
@@ -115,6 +125,7 @@ class AlarmForegroundService : Service() {
 
         val stopIntent = Intent(this, AlarmForegroundService::class.java).apply {
             action = ACTION_STOP
+            putExtra("alarmId", alarmId)
         }
 
         val stopPendingIntent = PendingIntent.getService(
@@ -162,13 +173,7 @@ class AlarmForegroundService : Service() {
     }
 
     private fun startSound(settings: Settings) {
-
         audioManager = getSystemService(AUDIO_SERVICE) as AudioManager
-        originalMusicVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
-
-        val alarmVolume = audioManager.getStreamVolume(AudioManager.STREAM_ALARM)
-
-        audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, alarmVolume, 0)
 
         focusRequest = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN)
             .setAudioAttributes(
@@ -178,35 +183,44 @@ class AlarmForegroundService : Service() {
                     .build()
             ).build()
 
-        audioManager.requestAudioFocus(focusRequest)
+        val focusResult = audioManager.requestAudioFocus(focusRequest)
 
-        mediaPlayer = selectMelody(settings)
-        mediaPlayer.isLooping = true
-        mediaPlayer.start()
+        if (focusResult == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
+            mediaPlayer = selectMelody(settings)
+            mediaPlayer.isLooping = true
+            mediaPlayer.start()
+        }
     }
 
     private fun selectMelody(settings: Settings): MediaPlayer {
-        return when (settings.melody) {
-            getString(R.string.melody1) -> MediaPlayer.create(this, R.raw.default_signal1)
-            getString(R.string.melody2) -> MediaPlayer.create(this, R.raw.default_signal2)
-            getString(R.string.melody3) -> MediaPlayer.create(this, R.raw.default_signal3)
-            getString(R.string.melody4) -> MediaPlayer.create(this, R.raw.default_signal4)
-            getString(R.string.melody5) -> MediaPlayer.create(this, R.raw.default_signal5)
-            getString(R.string.melody6) -> MediaPlayer.create(this, R.raw.signal)
-            getString(R.string.melody7) -> MediaPlayer.create(this, R.raw.banjo_signal)
-            getString(R.string.melody8) -> MediaPlayer.create(this, R.raw.morning_signal)
-            getString(R.string.melody9) -> MediaPlayer.create(this, R.raw.simple_signal)
-            getString(R.string.melody10) -> MediaPlayer.create(this, R.raw.fitness_signal)
-            getString(R.string.melody11) -> MediaPlayer.create(this, R.raw.medieval_signal)
-            getString(R.string.melody12) -> MediaPlayer.create(this, R.raw.introduction_signal)
-            else -> MediaPlayer.create(this, R.raw.default_signal1)
-        }.apply {
+        val resId = when (settings.melody) {
+            getString(R.string.melody1) -> R.raw.default_signal1
+            getString(R.string.melody2) -> R.raw.default_signal2
+            getString(R.string.melody3) -> R.raw.default_signal3
+            getString(R.string.melody4) -> R.raw.default_signal4
+            getString(R.string.melody5) -> R.raw.default_signal5
+            getString(R.string.melody6) -> R.raw.signal
+            getString(R.string.melody7) -> R.raw.banjo_signal
+            getString(R.string.melody8) -> R.raw.morning_signal
+            getString(R.string.melody9) -> R.raw.simple_signal
+            getString(R.string.melody10) -> R.raw.fitness_signal
+            getString(R.string.melody11) -> R.raw.medieval_signal
+            getString(R.string.melody12) -> R.raw.introduction_signal
+            else -> R.raw.default_signal1
+        }
+
+        return MediaPlayer().apply {
             setAudioAttributes(
                 AudioAttributes.Builder()
                     .setUsage(AudioAttributes.USAGE_ALARM)
                     .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
                     .build()
             )
+            val afd = resources.openRawResourceFd(resId)
+            setDataSource(afd.fileDescriptor, afd.startOffset, afd.length)
+            afd.close()
+
+            prepare()
         }
     }
 
@@ -249,6 +263,9 @@ class AlarmForegroundService : Service() {
         stopSelf()
 
         if (settings.repetitions <= 0) {
+            CoroutineScope(Dispatchers.IO).launch {
+                alarmService.updateEnabled(alarmId, false)
+            }
             return
         }
 
